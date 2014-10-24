@@ -30,10 +30,10 @@ win32 {
         $$(BOOST_DIR_1_56) \
         $$(FLANN_DIR)/include \
         $$"C:\Program Files\Microsoft SDKs\Kinect\v1.8\inc" \
-        $$"C:\Program Files\Microsoft SDKs\Kinect\v2.0-PublicPreview1409\inc"
+        $$"C:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\inc"
 
-    LIBS += "C:\Program Files\Microsoft SDKs\Kinect\v2.0-PublicPreview1409\lib\x86\Kinect20.lib" \
-        "C:\Program Files\Microsoft SDKs\Kinect\v1.8\lib\x86\Kinect10.lib"
+    LIBS += "C:\Program Files\Microsoft SDKs\Kinect\v1.8\lib\x86\Kinect10.lib" \
+        "C:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\lib\x86\Kinect20.lib"
 
     CONFIG(debug, debug|release) {
         BUILDDIR = debug

@@ -55,14 +55,7 @@ public:
 
 private:
     void reset();
-    float getNeighboringDistance(const cv::Mat& depthMap, const cv::Point& point) const;
-    bool hasBlackAreas(const cv::Mat& depthMap, const cv::Point& point) const;
-    void preFilterShadows(const cv::Mat& depthMap);
     void filterContours();
-
-    cv::Mat m_filteredDepthMap;
-    cv::Mat m_shadowMask;
-    std::vector<std::vector<cv::Point>> m_shadowContours;
 
     cv::Mat m_background;
     cv::Mat m_foreground;
