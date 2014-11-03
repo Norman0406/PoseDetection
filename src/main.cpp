@@ -4,6 +4,7 @@
 #include <input/depthcamerakinectsdk2.h>
 #include <segmentation/connectedcomponentlabeling.h>
 #include <segmentation/staticmap.h>
+#include <segmentation/tracking.h>
 
 using namespace std;
 
@@ -12,25 +13,29 @@ void main()
     DepthCamera* camera = new DepthCameraKinectSDK2();
     camera->open();
 
-    cv::namedWindow("Depth");
-
     ConnectedComponentLabeling* ccLabelling = new ConnectedComponentLabeling();
     StaticMap* staticMap = new StaticMap();
+    Tracking* tracking = new Tracking();
 
     do {
         camera->waitForData();
 
+        // get depth map
         const cv::Mat& depthMap = camera->getDepthMap();
         cv::imshow("Depth", depthMap * 0.2f);
 
+        // compute static background
         staticMap->process(depthMap);
-
         cv::imshow("Background", staticMap->getBackground() * 0.2f);
         cv::imshow("Foreground", staticMap->getForeground() * 0.2f);
 
-        //ccLabelling->process(staticMap->getForeground());
+        // compute connected components
+        ccLabelling->process(staticMap->getForeground());
+        cv::imshow("Labels", ccLabelling->getColoredLabelMap());
 
-        //cv::imshow("Labels", ccLabelling->getColoredLabelMap());
+        // track connected components
+        tracking->process(depthMap, ccLabelling->getLabelMap(), ccLabelling->getComponents());
+        cv::imshow("Tracking Labels", tracking->getColoredLabelMap());
 
     } while (cv::waitKey(1) != 27);
 
@@ -39,4 +44,5 @@ void main()
     delete camera;
     delete ccLabelling;
     delete staticMap;
+    delete tracking;
 }

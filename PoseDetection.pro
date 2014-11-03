@@ -12,13 +12,17 @@ SOURCES += src/main.cpp \
     src/input/depthcamerakinectsdk.cpp \
     src/input/depthcamerakinectsdk2.cpp \
     src/segmentation/connectedcomponentlabeling.cpp \
-    src/segmentation/staticmap.cpp
+    src/segmentation/tracking.cpp \
+    src/segmentation/staticmap.cpp \
+    src/utils/utils.cpp
 
 HEADERS += src/input/depthcamera.h \
     src/input/depthcamerakinectsdk.h \
     src/input/depthcamerakinectsdk2.h \
     src/segmentation/connectedcomponentlabeling.h \
-    src/segmentation/staticmap.h
+    src/segmentation/tracking.h \
+    src/segmentation/staticmap.h \
+    src/utils/utils.h
 
 win32 {
     DEFINES += _CRT_SECURE_NO_WARNINGS

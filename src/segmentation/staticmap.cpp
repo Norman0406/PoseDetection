@@ -73,7 +73,7 @@ void StaticMap::process(const cv::Mat& depthMap)
     // update the background model
     for (int i = 0; i < depthMap.cols; i++) {
         for (int j = 0; j < depthMap.rows; j++) {
-            cv::Point point(i, j);
+            const cv::Point point(i, j);
             const float& dist = depthMap.at<float>(point);
             float& background = m_background.at<float>(point);
             unsigned int& count = m_count.at<unsigned int>(point);
@@ -105,7 +105,7 @@ void StaticMap::process(const cv::Mat& depthMap)
         for (int j = 0; j < m_foreground.rows; j++) {
             cv::Point point(i, j);
             const float& dist = depthMap.at<float>(point);
-            float& foreground = m_foreground.at<float>(point);
+            const float& foreground = m_foreground.at<float>(point);
             float& background = m_background.at<float>(point);
             unsigned int& count = m_count.at<unsigned int>(point);
 
@@ -135,8 +135,9 @@ void StaticMap::process(const cv::Mat& depthMap)
 
 void StaticMap::filterContours()
 {
-    // perform an opening to supress noise
     cv::Mat element = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(5, 5));
+
+    // perform an opening to supress noise
     cv::erode(m_foregroundMask, m_foregroundMask, element);
     cv::dilate(m_foregroundMask, m_foregroundMask, element);
 
