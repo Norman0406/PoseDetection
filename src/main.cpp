@@ -10,12 +10,12 @@ using namespace std;
 
 void main()
 {
-    DepthCamera* camera = new DepthCameraKinectSDK2();
+    pose::DepthCamera* camera = new pose::DepthCameraKinectSDK2();
     camera->open();
 
-    ConnectedComponentLabeling* ccLabelling = new ConnectedComponentLabeling();
-    StaticMap* staticMap = new StaticMap();
-    Tracking* tracking = new Tracking();
+    pose::ConnectedComponentLabeling* ccLabelling = new pose::ConnectedComponentLabeling();
+    pose::StaticMap* staticMap = new pose::StaticMap();
+    pose::Tracking* tracking = new pose::Tracking();
 
     do {
         camera->waitForData();
@@ -38,7 +38,7 @@ void main()
             cv::imshow("Labels", ccLabelling->getColoredLabelMap());
 
             // track connected components
-            tracking->process(depthMap, ccLabelling->getLabelMap(), ccLabelling->getComponents());
+            tracking->process(depthMap, ccLabelling->getLabelMap(), ccLabelling->getComponents(), projectionMatrix);
             cv::imshow("Tracking Labels", tracking->getColoredLabelMap());
         }
 

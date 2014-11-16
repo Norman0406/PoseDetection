@@ -8,6 +8,7 @@
 #include <mutex>
 #include <condition_variable>
 
+namespace pose {
 class DepthCameraKinectSDK
         : public DepthCamera
 {
@@ -38,5 +39,6 @@ private:
     cv::Mat m_depthMapBuffer;
     cv::Mat m_pointCloudBuffer;
 };
+}
 
 #endif // DEPTHCAMERAKINECTSDK_H

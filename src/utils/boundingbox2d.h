@@ -3,11 +3,15 @@
 
 #include <opencv2/opencv.hpp>
 
+namespace pose {
 class BoundingBox2D
 {
 public:
     BoundingBox2D();
-    BoundingBox2D(cv::Point minPoint, cv::Point maxPoint, float minDepth, float maxDepth);
+    BoundingBox2D(cv::Point minPoint,
+                  cv::Point maxPoint,
+                  float minDepth,
+                  float maxDepth);
 
     /**
      * @brief The anchor points define the four either vertical or horizontal lines that
@@ -24,7 +28,10 @@ public:
     /**
      * @brief Set the bounding box data and update all information.
      */
-    void set(cv::Point minPoint, cv::Point maxPoint, float minDepth, float maxDepth);
+    void set(cv::Point minPoint,
+             cv::Point maxPoint,
+             float minDepth,
+             float maxDepth);
 
     /**
      * @brief Get the minimum point in the upper left corner.
@@ -80,7 +87,8 @@ public:
     /**
      * @brief Computes the overlapping area between box1 and box2 in pixels
      */
-    static int getOverlapArea(const BoundingBox2D& box1, const BoundingBox2D& box2);
+    static int getOverlapArea(const BoundingBox2D& box1,
+                              const BoundingBox2D& box2);
 
     /**
      * @brief Computes the overlapping area between this box and the other box in pixels
@@ -98,7 +106,8 @@ public:
      * @brief Computes the pixel distance of the specified anchor point between this box
      * and the other box.
      */
-    int getAnchorDistance(AnchorType anchor, const BoundingBox2D& other) const;
+    int getAnchorDistance(AnchorType anchor,
+                          const BoundingBox2D& other) const;
 
 private:
     // direct information
@@ -114,5 +123,6 @@ private:
     float m_avgDepth;
     cv::Point m_center;
 };
+}
 
 #endif // BOUNDINGBOX2D_H

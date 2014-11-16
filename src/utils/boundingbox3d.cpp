@@ -1,16 +1,19 @@
 #include "boundingbox3d.h"
 
+namespace pose {
 BoundingBox3D::BoundingBox3D()
 {
     set(cv::Point3f(0, 0, 0), cv::Point3f(0, 0, 0));
 }
 
-BoundingBox3D::BoundingBox3D(cv::Point3f minPoint, cv::Point3f maxPoint)
+BoundingBox3D::BoundingBox3D(cv::Point3f minPoint,
+                             cv::Point3f maxPoint)
 {
     set(minPoint, maxPoint);
 }
 
-void BoundingBox3D::set(cv::Point3f minPoint, cv::Point3f maxPoint)
+void BoundingBox3D::set(cv::Point3f minPoint,
+                        cv::Point3f maxPoint)
 {
     m_minPoint = minPoint;
     m_maxPoint = maxPoint;
@@ -71,4 +74,5 @@ float BoundingBox3D::getAnchor(AnchorType anchor) const
         return m_minPoint.z;
     }
     return -1;
+}
 }

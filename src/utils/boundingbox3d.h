@@ -3,11 +3,13 @@
 
 #include <opencv2/opencv.hpp>
 
+namespace pose {
 class BoundingBox3D
 {
 public:
     BoundingBox3D();
-    BoundingBox3D(cv::Point3f minPoint, cv::Point3f maxPoint);
+    BoundingBox3D(cv::Point3f minPoint,
+                  cv::Point3f maxPoint);
 
     /**
      * @brief The anchor points define the six planes that enclose the object contained
@@ -25,7 +27,8 @@ public:
     /**
      * @brief Set the bounding box data and update all information.
      */
-    void set(cv::Point3f minPoint, cv::Point3f maxPoint);
+    void set(cv::Point3f minPoint,
+             cv::Point3f maxPoint);
 
     /**
      * @brief Get the minimum point in the upper left corner.
@@ -68,5 +71,6 @@ private:
     float       m_area;
     cv::Point3f m_center;
 };
+}
 
 #endif // BOUNDINGBOX3D_H

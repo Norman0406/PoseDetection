@@ -1,16 +1,23 @@
 #include "boundingbox2d.h"
 
+namespace pose {
 BoundingBox2D::BoundingBox2D()
 {
     set(cv::Point(0, 0), cv::Point(0, 0), 0, 0);
 }
 
-BoundingBox2D::BoundingBox2D(cv::Point minPoint, cv::Point maxPoint, float minDepth, float maxDepth)
+BoundingBox2D::BoundingBox2D(cv::Point minPoint,
+                             cv::Point maxPoint,
+                             float minDepth,
+                             float maxDepth)
 {
     set(minPoint, maxPoint, minDepth, maxDepth);
 }
 
-void BoundingBox2D::set(cv::Point minPoint, cv::Point maxPoint, float minDepth, float maxDepth)
+void BoundingBox2D::set(cv::Point minPoint,
+                        cv::Point maxPoint,
+                        float minDepth,
+                        float maxDepth)
 {
     m_minPoint = minPoint;
     m_maxPoint = maxPoint;
@@ -90,7 +97,8 @@ int BoundingBox2D::getAnchor(AnchorType anchor) const
     return -1;
 }
 
-int BoundingBox2D::getOverlapArea(const BoundingBox2D& box1, const BoundingBox2D& box2)
+int BoundingBox2D::getOverlapArea(const BoundingBox2D& box1,
+                                  const BoundingBox2D& box2)
 {
     const int top = std::max(box1.getAnchor(AT_TOP), box2.getAnchor(AT_TOP));
     const int left = std::max(box1.getAnchor(AT_LEFT), box2.getAnchor(AT_LEFT));
@@ -111,7 +119,9 @@ float BoundingBox2D::getOverlapFactor(const BoundingBox2D& other) const
     return area / (float)getArea();
 }
 
-int BoundingBox2D::getAnchorDistance(AnchorType anchor, const BoundingBox2D& other) const
+int BoundingBox2D::getAnchorDistance(AnchorType anchor,
+                                     const BoundingBox2D& other) const
 {
     return abs(getAnchor(anchor) - other.getAnchor(anchor));
+}
 }

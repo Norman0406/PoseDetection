@@ -3,6 +3,7 @@
 
 #include <opencv2/opencv.hpp>
 
+namespace pose {
 class Utils
 {
 public:
@@ -13,5 +14,6 @@ private:
     Utils();
     ~Utils();
 };
+}
 
 #endif // LABELING_H

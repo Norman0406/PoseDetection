@@ -6,6 +6,7 @@
 #include <utils/boundingbox2d.h>
 #include <utils/boundingbox3d.h>
 
+namespace pose {
 struct ConnectedComponent
 {
     unsigned int    id;
@@ -29,10 +30,14 @@ public:
     const cv::Mat& getLabelMap() const;
     cv::Mat getColoredLabelMap();
 
-    void process(const cv::Mat& foreground, const cv::Mat& pointCloud);
+    void process(const cv::Mat& foreground,
+                 const cv::Mat& pointCloud);
 
 private:
-    void findConnectedComponents(const cv::Mat& foreground, const cv::Mat& pointcloud, const cv::Point& seed, unsigned int label);
+    void findConnectedComponents(const cv::Mat& foreground,
+                                 const cv::Mat& pointcloud,
+                                 const cv::Point& seed,
+                                 unsigned int label);
     std::vector<unsigned int> findNearbyComponents(unsigned int id);
 
     cv::Mat m_labelMap;
@@ -44,5 +49,6 @@ private:
 
     cv::Mat temp;
 };
+}
 
 #endif // CONNECTEDCOMPONENTLABELING_H

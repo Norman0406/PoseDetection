@@ -1,5 +1,6 @@
 #include "depthcamera.h"
 
+namespace pose {
 DepthCamera::DepthCamera()
 {
 }
@@ -155,4 +156,5 @@ cv::Mat DepthCamera::computeProjectionMatrix(const cv::Mat& pointCloud) const
     projectionMatrix = projectionMatrix * (1.0f / sum);
 
     return projectionMatrix;
+}
 }

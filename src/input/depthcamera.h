@@ -6,6 +6,7 @@
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 
+namespace pose {
 class DepthCamera
 {
 public:
@@ -64,5 +65,6 @@ private:
 
     cv::Mat m_projectionMatrix;
 };
+}
 
 #endif // DEPTHCAMERA_H

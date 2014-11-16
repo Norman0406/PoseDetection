@@ -1,5 +1,6 @@
 #include "depthcamerakinectsdk.h"
 
+namespace pose {
 DepthCameraKinectSDK::DepthCameraKinectSDK()
     : m_sensor(0), m_processThread(0), m_terminate(false)
 {
@@ -104,4 +105,5 @@ void DepthCameraKinectSDK::iWaitForData()
     m_pointCloudBuffer.copyTo(m_pointCloud);
 
     m_depthMapReady = false;
+}
 }

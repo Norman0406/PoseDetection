@@ -2,6 +2,7 @@
 #include <utils/utils.h>
 #include <queue>
 
+namespace pose {
 ConnectedComponentLabeling::ConnectedComponentLabeling()
     : m_maxDistance(0.1f)
 {
@@ -33,7 +34,8 @@ cv::Mat ConnectedComponentLabeling::getColoredLabelMap()
     return m_coloredLabelMap;
 }
 
-void ConnectedComponentLabeling::process(const cv::Mat& foreground, const cv::Mat& pointCloud)
+void ConnectedComponentLabeling::process(const cv::Mat& foreground,
+                                         const cv::Mat& pointCloud)
 {
     // create a new label map
     if (foreground.cols != m_labelMap.cols || foreground.rows != m_labelMap.rows) {
@@ -75,7 +77,10 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground, const cv::Ma
     cv::imshow("Temp", temp);
 }
 
-void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foreground, const cv::Mat& pointCloud, const cv::Point& seed, unsigned int label)
+void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foreground,
+                                                         const cv::Mat& pointCloud,
+                                                         const cv::Point& seed,
+                                                         unsigned int label)
 {
     std::queue<cv::Point> queue;
     queue.push(seed);
@@ -228,4 +233,5 @@ std::vector<unsigned int> ConnectedComponentLabeling::findNearbyComponents(unsig
     }
 
     return nearbyIds;
+}
 }

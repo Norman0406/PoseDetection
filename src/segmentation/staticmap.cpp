@@ -1,5 +1,6 @@
 #include "staticmap.h"
 
+namespace pose {
 StaticMap::StaticMap()
 {
     m_updateFrames = 0;
@@ -158,4 +159,5 @@ void StaticMap::filterContours()
     }
 
     m_foreground.setTo(0, m_tempContour);
+}
 }
