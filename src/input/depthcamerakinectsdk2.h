@@ -25,9 +25,8 @@ public:
     float getFOVDiagonal() const;
     cv::Size getDepthSize() const;
 
-    void waitForData();
-    const cv::Mat& getDepthMap() const;
-    const pcl::PointCloud<pcl::PointXYZ>::Ptr& getPointCloud() const;
+protected:
+    void iWaitForData();
 
 private:
     void processDepth();
@@ -53,9 +52,8 @@ private:
     std::mutex m_depthMapMutex;
     std::condition_variable m_depthMapReadyCond;
     bool m_depthMapReady;
-    cv::Mat m_depthMap;
     cv::Mat m_depthMapBuffer;
-    pcl::PointCloud<pcl::PointXYZ>::Ptr m_pointCloud;
+    cv::Mat m_pointCloudBuffer;
 };
 
 #endif // DEPTHCAMERAKINECTSDK2_H

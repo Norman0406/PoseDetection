@@ -48,7 +48,8 @@ bool DepthCameraKinectSDK2::open()
     m_depthMapBuffer = cv::Mat(m_depthSize.height, m_depthSize.width, CV_32F);
     m_depthMapReady = false;
 
-    m_pointCloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>(m_depthSize.width, m_depthSize.height));
+    m_pointCloud = cv::Mat(m_depthSize.height, m_depthSize.width, CV_32FC3);
+    m_pointCloudBuffer = cv::Mat(m_depthSize.height, m_depthSize.width, CV_32FC3);
     m_points = new CameraSpacePoint[m_depthSize.width * m_depthSize.height];
 
     m_depthFrameReader->SubscribeFrameArrived((WAITABLE_HANDLE*)&m_depthEventHandle);
@@ -58,7 +59,7 @@ bool DepthCameraKinectSDK2::open()
     m_terminate = false;
     m_processThread = new std::thread(std::bind(&DepthCameraKinectSDK2::processDepth, this));
 
-    return false;
+    return true;
 }
 
 void DepthCameraKinectSDK2::close()
@@ -96,15 +97,18 @@ void DepthCameraKinectSDK2::processDepth()
                         std::unique_lock<std::mutex> lock(m_depthMapMutex);
 
                         m_depthMapBuffer.setTo(0);
+                        m_pointCloudBuffer.setTo(0);
+
                         for (int i = 0; i < m_depthMapBuffer.rows; i++) {
-                            float* row = m_depthMapBuffer.ptr<float>(i);
+                            float* depthRow = m_depthMapBuffer.ptr<float>(i);
+                            cv::Vec3f* pointCloudRow = m_pointCloudBuffer.ptr<cv::Vec3f>(i);
                             for (int j = 0; j < m_depthMapBuffer.cols; j++) {
                                 // set depth value
                                 float depth = *bufferRun / 1000.0f;
-                                row[j] = depth;
+                                depthRow[j] = depth;
 
                                 // set point in point cloud
-                                m_pointCloud->at(j, i) = pcl::PointXYZ((*pointsBufferRun).X, (*pointsBufferRun).Y, (*pointsBufferRun).Z);
+                                pointCloudRow[j] = cv::Vec3f((*pointsBufferRun).X, (*pointsBufferRun).Y, (*pointsBufferRun).Z);
 
                                 bufferRun++;
                                 pointsBufferRun++;
@@ -153,23 +157,14 @@ cv::Size DepthCameraKinectSDK2::getDepthSize() const
     return m_depthSize;
 }
 
-void DepthCameraKinectSDK2::waitForData()
+void DepthCameraKinectSDK2::iWaitForData()
 {
     std::unique_lock<std::mutex> lock(m_depthMapMutex);
     while (!m_depthMapReady)
         m_depthMapReadyCond.wait(lock);
 
     m_depthMapBuffer.copyTo(m_depthMap);
+    m_pointCloudBuffer.copyTo(m_pointCloud);
 
     m_depthMapReady = false;
-}
-
-const cv::Mat& DepthCameraKinectSDK2::getDepthMap() const
-{
-    return m_depthMap;
-}
-
-const pcl::PointCloud<pcl::PointXYZ>::Ptr& DepthCameraKinectSDK2::getPointCloud() const
-{
-    return m_pointCloud;
 }

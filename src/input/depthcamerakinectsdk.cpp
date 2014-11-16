@@ -32,7 +32,8 @@ bool DepthCameraKinectSDK::open()
     m_depthMapBuffer = cv::Mat(height, width, CV_32F);
     m_depthMapReady = false;
 
-    m_pointCloud = pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>(width, height));
+    m_pointCloud = cv::Mat(height, width, CV_32FC3);
+    m_pointCloudBuffer = cv::Mat(height, width, CV_32FC3);
 
     m_terminate = false;
     m_processThread = new std::thread(std::bind(&DepthCameraKinectSDK::processDepth, this));
@@ -71,11 +72,15 @@ void DepthCameraKinectSDK::processDepth()
             std::unique_lock<std::mutex> lock(m_depthMapMutex);
 
             m_depthMapBuffer.setTo(0);
+            m_pointCloudBuffer.setTo(0);
+
             for (int i = 0; i < m_depthMapBuffer.rows; i++) {
                 float* row = m_depthMapBuffer.ptr<float>(i);
                 for (int j = 0; j < m_depthMapBuffer.cols; j++) {
                     NUI_DEPTH_IMAGE_PIXEL depthPixel = *bufferRun++;
                     row[j] = (float)(depthPixel.depth / 1000.0f);
+
+                    // TODO: get point cloud
                 }
             }
 
@@ -89,23 +94,14 @@ void DepthCameraKinectSDK::processDepth()
     }
 }
 
-void DepthCameraKinectSDK::waitForData()
+void DepthCameraKinectSDK::iWaitForData()
 {
     std::unique_lock<std::mutex> lock(m_depthMapMutex);
     while (!m_depthMapReady)
         m_depthMapReadyCond.wait(lock);
 
     m_depthMapBuffer.copyTo(m_depthMap);
+    m_pointCloudBuffer.copyTo(m_pointCloud);
 
     m_depthMapReady = false;
-}
-
-const cv::Mat& DepthCameraKinectSDK::getDepthMap() const
-{
-    return m_depthMap;
-}
-
-const pcl::PointCloud<pcl::PointXYZ>::Ptr& DepthCameraKinectSDK::getPointCloud() const
-{
-    return m_pointCloud;
 }
