@@ -26,8 +26,8 @@ void main()
 
         // compute static background
         staticMap->process(depthMap);
-        cv::imshow("Background", staticMap->getBackground() * 0.2f);
-        cv::imshow("Foreground", staticMap->getForeground() * 0.2f);
+        //cv::imshow("Background", staticMap->getBackground() * 0.2f);
+        //cv::imshow("Foreground", staticMap->getForeground() * 0.2f);
 
         // compute connected components
         ccLabelling->process(staticMap->getForeground());

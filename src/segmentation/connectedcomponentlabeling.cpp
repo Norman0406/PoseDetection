@@ -17,7 +17,7 @@ void ConnectedComponentLabeling::setMaxDistance(float maxDistance)
     m_maxDistance = maxDistance;
 }
 
-const std::vector<ConnectedComponent*>& ConnectedComponentLabeling::getComponents() const
+const std::vector<std::shared_ptr<ConnectedComponent>>& ConnectedComponentLabeling::getComponents() const
 {
     return m_components;
 }
@@ -43,8 +43,6 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground)
     }
     m_labelMap.setTo(0);
 
-    for (size_t i = 0; i < m_components.size(); i++)
-        delete m_components[i];
     m_components.clear();
 
     temp.setTo(0);
@@ -68,10 +66,10 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground)
 
     // get nearby components
     for (size_t i = 0; i < m_components.size(); i++) {
-        ConnectedComponent* component = m_components[i];
+        std::shared_ptr<ConnectedComponent>& component = m_components[i];
         component->nearbyIds = findNearbyComponents(component->id);
 
-        cv::rectangle(temp, component->boundingBox.minPoint, component->boundingBox.maxPoint, cv::Scalar(0, 0, 255));
+        cv::rectangle(temp, component->boundingBox.getMinPoint(), component->boundingBox.getMaxPoint(), cv::Scalar(0, 0, 255));
     }
 
     cv::imshow("Temp", temp);
@@ -89,11 +87,10 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
     m_tempComponent.at<uchar>(seed) = 255;
 
     // initialize bounding box
-    BoundingBox boundingBox;
-    boundingBox.minDepth = 1000;
-    boundingBox.maxDepth = 0;
-    boundingBox.minPoint = cv::Point(foreground.cols, foreground.rows);
-    boundingBox.maxPoint = cv::Point(0, 0);
+    float bbMinDepth = 1000;
+    float bbMaxDepth = 0;
+    cv::Point bbMinPoint(foreground.cols, foreground.rows);
+    cv::Point bbMaxPoint(0, 0);
 
     // The connected component is first written to a temporary label map that is added to the final label map only
     // if the component is big enough. Otherwise, the pixels are marked as IL_DISCARDED.
@@ -129,20 +126,20 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
                     m_tempComponent.at<uchar>(seed) = 255;
 
                     // update bounding box
-                    if (dist < boundingBox.minDepth)
-                        boundingBox.minDepth = dist;
-                    else if (dist > boundingBox.maxDepth)
-                        boundingBox.maxDepth = dist;
+                    if (dist < bbMinDepth)
+                        bbMinDepth = dist;
+                    else if (dist > bbMaxDepth)
+                        bbMaxDepth = dist;
 
-                    if (neighborPoint.x < boundingBox.minPoint.x)
-                        boundingBox.minPoint.x = neighborPoint.x;
-                    else if (neighborPoint.x > boundingBox.maxPoint.x)
-                        boundingBox.maxPoint.x = neighborPoint.x;
+                    if (neighborPoint.x < bbMinPoint.x)
+                        bbMinPoint.x = neighborPoint.x;
+                    else if (neighborPoint.x > bbMaxPoint.x)
+                        bbMaxPoint.x = neighborPoint.x;
 
-                    if (neighborPoint.y < boundingBox.minPoint.y)
-                        boundingBox.minPoint.y = neighborPoint.y;
-                    else if (neighborPoint.y > boundingBox.maxPoint.y)
-                        boundingBox.maxPoint.y = neighborPoint.y;
+                    if (neighborPoint.y < bbMinPoint.y)
+                        bbMinPoint.y = neighborPoint.y;
+                    else if (neighborPoint.y > bbMaxPoint.y)
+                        bbMaxPoint.y = neighborPoint.y;
 
                     // label the current point
                     curLabel = label;
@@ -153,11 +150,10 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
     } while (!queue.empty());
 
     // create a new component
-    ConnectedComponent* component = new ConnectedComponent();
+    std::shared_ptr<ConnectedComponent> component(new ConnectedComponent());
     component->id = label;
     component->area = size;
-    component->boundingBox = boundingBox;
-    component->boundingBox.update();
+    component->boundingBox = BoundingBox2D(bbMinPoint, bbMaxPoint, bbMinDepth, bbMaxDepth);
 
     // compute center of mass
     cv::Moments moments = cv::moments(m_tempComponent, true);

@@ -2,33 +2,15 @@
 #define CONNECTEDCOMPONENTLABELING_H
 
 #include <opencv2/opencv.hpp>
-
-struct BoundingBox
-{
-    // direct information
-    cv::Point   minPoint;
-    cv::Point   maxPoint;
-    float       minDepth;
-    float       maxDepth;
-
-    // inferred information
-    int width;
-    int height;
-    cv::Point center;
-
-    void update() {
-        width = maxPoint.x - minPoint.x;
-        height = maxPoint.y - minPoint.y;
-        center = cv::Point(minPoint.x + (width / 2), minPoint.y + (height / 2));
-    }
-};
+#include <memory>
+#include <utils/boundingbox2d.h>
 
 struct ConnectedComponent
 {
     unsigned int    id;
     cv::Point       centerOfMass;
     float           centerDepth;
-    BoundingBox     boundingBox;
+    BoundingBox2D   boundingBox;
     int             area;
     std::vector<unsigned int> nearbyIds;
 };
@@ -41,7 +23,7 @@ public:
 
     void setMaxDistance(float maxDistance);
 
-    const std::vector<ConnectedComponent*>& getComponents() const;
+    const std::vector<std::shared_ptr<ConnectedComponent>>& getComponents() const;
     const cv::Mat& getLabelMap() const;
     cv::Mat getColoredLabelMap();
 
@@ -54,7 +36,7 @@ private:
     cv::Mat m_labelMap;
     cv::Mat m_coloredLabelMap;
     cv::Mat m_tempComponent;
-    std::vector<ConnectedComponent*> m_components;
+    std::vector<std::shared_ptr<ConnectedComponent> > m_components;
 
     float m_maxDistance;
 

@@ -14,7 +14,8 @@ SOURCES += src/main.cpp \
     src/segmentation/connectedcomponentlabeling.cpp \
     src/segmentation/tracking.cpp \
     src/segmentation/staticmap.cpp \
-    src/utils/utils.cpp
+    src/utils/utils.cpp \
+    src/utils/boundingbox2d.cpp
 
 HEADERS += src/input/depthcamera.h \
     src/input/depthcamerakinectsdk.h \
@@ -22,7 +23,8 @@ HEADERS += src/input/depthcamera.h \
     src/segmentation/connectedcomponentlabeling.h \
     src/segmentation/tracking.h \
     src/segmentation/staticmap.h \
-    src/utils/utils.h
+    src/utils/utils.h \
+    src/utils/boundingbox2d.h
 
 win32 {
     DEFINES += _CRT_SECURE_NO_WARNINGS
