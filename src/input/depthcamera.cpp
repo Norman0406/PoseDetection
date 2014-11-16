@@ -37,11 +37,6 @@ const cv::Mat& DepthCamera::getProjectionMatrix() const
     return m_projectionMatrix;
 }
 
-const cv::Mat& DepthCamera::getCameraMatrix() const
-{
-    return m_cameraMatrix;
-}
-
 cv::Mat DepthCamera::computeProjectionMatrix(const cv::Mat& pointCloud) const
 {
     if (pointCloud.empty() || pointCloud.type() != CV_32FC3)
@@ -158,9 +153,6 @@ cv::Mat DepthCamera::computeProjectionMatrix(const cv::Mat& pointCloud) const
         projectionMatrix.ptr<float>(2)[1] +
         projectionMatrix.ptr<float>(2)[2];
     projectionMatrix = projectionMatrix * (1.0f / sum);
-
-    // decompose
-    cv::decomposeProjectionMatrix(projectionMatrix, m_cameraMat, m_rotMat, m_transMat);
 
     return projectionMatrix;
 }

@@ -1,5 +1,5 @@
-#ifndef BOUNDINGBOX_H
-#define BOUNDINGBOX_H
+#ifndef BOUNDINGBOX2D_H
+#define BOUNDINGBOX2D_H
 
 #include <opencv2/opencv.hpp>
 
@@ -16,8 +16,8 @@ public:
      */
     enum AnchorType {
         AT_LEFT,
-        AT_TOP,
         AT_RIGHT,
+        AT_TOP,
         AT_BOTTOM
     };
 
@@ -115,4 +115,4 @@ private:
     cv::Point m_center;
 };
 
-#endif // BOUNDINGBOX_H
+#endif // BOUNDINGBOX2D_H

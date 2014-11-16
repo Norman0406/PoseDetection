@@ -24,7 +24,7 @@ void main()
             // get depth map
             const cv::Mat& depthMap = camera->getDepthMap();
             const cv::Mat& pointCloud = camera->getPointCloud();
-            const cv::Mat& projectionmatrix = camera->getProjectionMatrix();
+            const cv::Mat& projectionMatrix = camera->getProjectionMatrix();
 
             cv::imshow("Depth", depthMap * 0.2f);
 

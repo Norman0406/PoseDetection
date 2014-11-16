@@ -17,11 +17,16 @@ void BoundingBox2D::set(cv::Point minPoint, cv::Point maxPoint, float minDepth, 
     m_minDepth = minDepth;
     m_maxDepth = maxDepth;
 
+    assert(m_minPoint.x <= m_maxPoint.x);
+    assert(m_minPoint.y <= m_maxPoint.y);
+    assert(m_minDepth <= m_maxDepth);
+
     // update inferred data
     m_width = m_maxPoint.x - m_minPoint.x;
     m_height = m_maxPoint.y - m_minPoint.y;
     m_center = cv::Point(m_minPoint.x + (m_width / 2), m_minPoint.y + (m_height / 2));
-    m_area = (getAnchor(AT_RIGHT) - getAnchor(AT_LEFT)) + (getAnchor(AT_BOTTOM) - getAnchor(AT_TOP));
+    m_area = (getAnchor(AT_RIGHT) - getAnchor(AT_LEFT)) *
+            (getAnchor(AT_BOTTOM) - getAnchor(AT_TOP));
     m_avgDepth = m_minDepth + ((m_maxDepth - m_minDepth) / 2.0f);
 }
 
@@ -75,10 +80,10 @@ int BoundingBox2D::getAnchor(AnchorType anchor) const
     switch (anchor) {
     case AT_LEFT:
         return m_minPoint.x;
-    case AT_TOP:
-        return m_minPoint.y;
     case AT_RIGHT:
         return m_maxPoint.x;
+    case AT_TOP:
+        return m_minPoint.y;
     case AT_BOTTOM:
         return m_maxPoint.y;
     }

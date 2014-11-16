@@ -51,12 +51,6 @@ public:
      */
     const cv::Mat& getProjectionMatrix() const;
 
-    /**
-     * @brief Get the camera matrix. This is the 3x3 matrix that stores the camera's
-     * intrinsic parameters.
-     */
-    const cv::Mat& getCameraMatrix() const;
-
 protected:
     DepthCamera();
 
@@ -69,9 +63,6 @@ private:
     cv::Mat computeProjectionMatrix(const cv::Mat& pointCloud) const;
 
     cv::Mat m_projectionMatrix;
-    cv::Mat m_cameraMatrix;
-    cv::Mat m_rotMat;
-    cv::Mat m_transMat;
 };
 
 #endif // DEPTHCAMERA_H
