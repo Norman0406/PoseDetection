@@ -1,6 +1,7 @@
 #include "depthcamerakinectsdk.h"
 
-namespace pose {
+namespace pose
+{
 DepthCameraKinectSDK::DepthCameraKinectSDK()
     : m_sensor(0), m_processThread(0), m_terminate(false)
 {

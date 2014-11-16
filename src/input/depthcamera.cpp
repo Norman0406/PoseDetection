@@ -1,6 +1,7 @@
 #include "depthcamera.h"
 
-namespace pose {
+namespace pose
+{
 DepthCamera::DepthCamera()
 {
 }

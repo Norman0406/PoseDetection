@@ -4,7 +4,8 @@
 
 #include <algorithm>
 
-namespace pose {
+namespace pose
+{
 Tracking::Tracking()
 {
     setSearchRadius(0.2f);

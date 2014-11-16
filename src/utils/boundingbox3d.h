@@ -3,7 +3,8 @@
 
 #include <opencv2/opencv.hpp>
 
-namespace pose {
+namespace pose
+{
 class BoundingBox3D
 {
 public:

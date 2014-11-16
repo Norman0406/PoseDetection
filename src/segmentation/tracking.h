@@ -4,7 +4,8 @@
 #include <opencv2/opencv.hpp>
 #include <memory>
 
-namespace pose {
+namespace pose
+{
 struct ConnectedComponent;
 
 struct TrackingObject

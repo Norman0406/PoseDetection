@@ -1,6 +1,7 @@
 #include "utils.h"
 
-namespace pose {
+namespace pose
+{
 void Utils::getColoredLabelMap(const cv::Mat& labelMap, cv::Mat& coloredLabelMap)
 {
     if (coloredLabelMap.empty() || coloredLabelMap.rows != labelMap.rows ||

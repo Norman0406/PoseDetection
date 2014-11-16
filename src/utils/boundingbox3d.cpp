@@ -1,6 +1,7 @@
 #include "boundingbox3d.h"
 
-namespace pose {
+namespace pose
+{
 BoundingBox3D::BoundingBox3D()
 {
     set(cv::Point3f(0, 0, 0), cv::Point3f(0, 0, 0));

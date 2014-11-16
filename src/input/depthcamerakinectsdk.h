@@ -8,7 +8,8 @@
 #include <mutex>
 #include <condition_variable>
 
-namespace pose {
+namespace pose
+{
 class DepthCameraKinectSDK
         : public DepthCamera
 {

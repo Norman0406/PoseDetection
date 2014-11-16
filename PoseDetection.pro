@@ -17,7 +17,8 @@ SOURCES += src/main.cpp \
     src/utils/utils.cpp \
     src/utils/boundingbox2d.cpp \
     src/utils/boundingbox3d.cpp \
-    src/utils/connectedcomponent.cpp
+    src/utils/connectedcomponent.cpp \
+    src/utils/exception.cpp \
 
 HEADERS += src/input/depthcamera.h \
     src/input/depthcamerakinectsdk.h \
@@ -28,7 +29,8 @@ HEADERS += src/input/depthcamera.h \
     src/utils/utils.h \
     src/utils/boundingbox2d.h \
     src/utils/boundingbox3d.h \
-    src/utils/connectedcomponent.h
+    src/utils/connectedcomponent.h \
+    src/utils/exception.h
 
 win32 {
     DEFINES += _CRT_SECURE_NO_WARNINGS

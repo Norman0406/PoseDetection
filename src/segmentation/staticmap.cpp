@@ -1,6 +1,7 @@
 #include "staticmap.h"
 
-namespace pose {
+namespace pose
+{
 StaticMap::StaticMap()
 {
     m_updateFrames = 0;

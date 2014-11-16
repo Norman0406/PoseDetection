@@ -1,6 +1,7 @@
 #include "boundingbox2d.h"
 
-namespace pose {
+namespace pose
+{
 BoundingBox2D::BoundingBox2D()
 {
     set(cv::Point(0, 0), cv::Point(0, 0), 0, 0);

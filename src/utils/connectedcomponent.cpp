@@ -1,6 +1,7 @@
 #include "connectedcomponent.h"
 
-namespace pose {
+namespace pose
+{
 /*ConnectedComponent::ConnectedComponent()
 {
 }*/

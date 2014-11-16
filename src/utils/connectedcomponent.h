@@ -5,7 +5,8 @@
 #include "boundingbox2d.h"
 #include "boundingbox3d.h"
 
-namespace pose {
+namespace pose
+{
 /*class ConnectedComponent
 {
 public:

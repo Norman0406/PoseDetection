@@ -2,7 +2,8 @@
 #include <utils/utils.h>
 #include <queue>
 
-namespace pose {
+namespace pose
+{
 ConnectedComponentLabeling::ConnectedComponentLabeling()
     : m_maxDistance(0.1f)
 {

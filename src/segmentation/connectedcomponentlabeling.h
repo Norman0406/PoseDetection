@@ -6,7 +6,8 @@
 #include <utils/boundingbox2d.h>
 #include <utils/boundingbox3d.h>
 
-namespace pose {
+namespace pose
+{
 struct ConnectedComponent
 {
     unsigned int    id;

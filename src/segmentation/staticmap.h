@@ -14,7 +14,8 @@
 // TODO: when a pixel does not have a valid depth value for a certain amount of time, the background pixel
 // will lose its value
 
-namespace pose {
+namespace pose
+{
 class StaticMap
 {
 public:
