@@ -34,7 +34,7 @@ void main()
             //cv::imshow("Foreground", staticMap->getForeground() * 0.2f);
 
             // compute connected components
-            ccLabelling->process(staticMap->getForeground());
+            ccLabelling->process(staticMap->getForeground(), pointCloud);
             cv::imshow("Labels", ccLabelling->getColoredLabelMap());
 
             // track connected components

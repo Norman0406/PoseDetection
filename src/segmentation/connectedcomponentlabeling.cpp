@@ -33,7 +33,7 @@ cv::Mat ConnectedComponentLabeling::getColoredLabelMap()
     return m_coloredLabelMap;
 }
 
-void ConnectedComponentLabeling::process(const cv::Mat& foreground)
+void ConnectedComponentLabeling::process(const cv::Mat& foreground, const cv::Mat& pointCloud)
 {
     // create a new label map
     if (foreground.cols != m_labelMap.cols || foreground.rows != m_labelMap.rows) {
@@ -58,7 +58,7 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground)
             temp.at<cv::Vec3b>(curPoint) = cv::Vec3b(depth * 100, depth * 100, depth * 100);
 
             if (depth > 0 && label == 0) {
-                findConnectedComponents(foreground, curPoint, nextLabel);
+                findConnectedComponents(foreground, pointCloud, curPoint, nextLabel);
                 nextLabel++;
             }
         }
@@ -69,13 +69,13 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground)
         std::shared_ptr<ConnectedComponent>& component = m_components[i];
         component->nearbyIds = findNearbyComponents(component->id);
 
-        cv::rectangle(temp, component->boundingBox.getMinPoint(), component->boundingBox.getMaxPoint(), cv::Scalar(0, 0, 255));
+        cv::rectangle(temp, component->boundingBox2d.getMinPoint(), component->boundingBox2d.getMaxPoint(), cv::Scalar(0, 0, 255));
     }
 
     cv::imshow("Temp", temp);
 }
 
-void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foreground, const cv::Point& seed, unsigned int label)
+void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foreground, const cv::Mat& pointCloud, const cv::Point& seed, unsigned int label)
 {
     std::queue<cv::Point> queue;
     queue.push(seed);
@@ -91,6 +91,9 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
     float bbMaxDepth = 0;
     cv::Point bbMinPoint(foreground.cols, foreground.rows);
     cv::Point bbMaxPoint(0, 0);
+
+    cv::Point3f bbMinPoint3d(1000, 1000, 1000);
+    cv::Point3f bbMaxPoint3d(-1000, -1000, -1);
 
     // The connected component is first written to a temporary label map that is added to the final label map only
     // if the component is big enough. Otherwise, the pixels are marked as IL_DISCARDED.
@@ -114,6 +117,7 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
                     continue;
 
                 cv::Point neighborPoint(iInd, jInd);
+                const cv::Vec3f& neighborPoint3d = pointCloud.at<cv::Vec3f>(neighborPoint);
 
                 const float& dist = foreground.at<float>(neighborPoint);
                 unsigned int& curLabel = m_labelMap.at<unsigned int>(neighborPoint);
@@ -125,21 +129,41 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
 
                     m_tempComponent.at<uchar>(seed) = 255;
 
-                    // update bounding box
-                    if (dist < bbMinDepth)
-                        bbMinDepth = dist;
-                    else if (dist > bbMaxDepth)
-                        bbMaxDepth = dist;
+                    // update 2d bounding box
+                    {
+                        if (dist < bbMinDepth)
+                            bbMinDepth = dist;
+                        if (dist > bbMaxDepth)
+                            bbMaxDepth = dist;
 
-                    if (neighborPoint.x < bbMinPoint.x)
-                        bbMinPoint.x = neighborPoint.x;
-                    else if (neighborPoint.x > bbMaxPoint.x)
-                        bbMaxPoint.x = neighborPoint.x;
+                        if (neighborPoint.x < bbMinPoint.x)
+                            bbMinPoint.x = neighborPoint.x;
+                        if (neighborPoint.x > bbMaxPoint.x)
+                            bbMaxPoint.x = neighborPoint.x;
 
-                    if (neighborPoint.y < bbMinPoint.y)
-                        bbMinPoint.y = neighborPoint.y;
-                    else if (neighborPoint.y > bbMaxPoint.y)
-                        bbMaxPoint.y = neighborPoint.y;
+                        if (neighborPoint.y < bbMinPoint.y)
+                            bbMinPoint.y = neighborPoint.y;
+                        if (neighborPoint.y > bbMaxPoint.y)
+                            bbMaxPoint.y = neighborPoint.y;
+                    }
+
+                    // update 3d bounding box
+                    {
+                        if (neighborPoint3d[0] < bbMinPoint3d.x)
+                            bbMinPoint3d.x = neighborPoint3d[0];
+                        if (neighborPoint3d[0] > bbMaxPoint3d.x)
+                            bbMaxPoint3d.x = neighborPoint3d[0];
+
+                        if (neighborPoint3d[1] < bbMinPoint3d.y)
+                            bbMinPoint3d.y = neighborPoint3d[1];
+                        if (neighborPoint3d[1] > bbMaxPoint3d.y)
+                            bbMaxPoint3d.y = neighborPoint3d[1];
+
+                        if (neighborPoint3d[2] < bbMinPoint3d.z)
+                            bbMinPoint3d.z = neighborPoint3d[2];
+                        if (neighborPoint3d[2] > bbMaxPoint3d.z)
+                            bbMaxPoint3d.z = neighborPoint3d[2];
+                    }
 
                     // label the current point
                     curLabel = label;
@@ -149,18 +173,21 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
         }
     } while (!queue.empty());
 
-    // create a new component
-    std::shared_ptr<ConnectedComponent> component(new ConnectedComponent());
-    component->id = label;
-    component->area = size;
-    component->boundingBox = BoundingBox2D(bbMinPoint, bbMaxPoint, bbMinDepth, bbMaxDepth);
+    if (size > 1) {
+        // create a new component
+        std::shared_ptr<ConnectedComponent> component(new ConnectedComponent());
+        component->id = label;
+        component->area = size;
+        component->boundingBox2d = BoundingBox2D(bbMinPoint, bbMaxPoint, bbMinDepth, bbMaxDepth);
+        component->boundingBox3d = BoundingBox3D(bbMinPoint3d, bbMaxPoint3d);
 
-    // compute center of mass
-    cv::Moments moments = cv::moments(m_tempComponent, true);
-    component->centerOfMass = cv::Point2f((float)(moments.m10 / moments.m00), (float)(moments.m01 / moments.m00));
-    component->centerDepth = foreground.at<float>(cv::Point((int)component->centerOfMass.x, (int)component->centerOfMass.y));
+        // compute center of mass
+        cv::Moments moments = cv::moments(m_tempComponent, true);
+        component->centerOfMass = cv::Point2f((float)(moments.m10 / moments.m00), (float)(moments.m01 / moments.m00));
+        component->centerDepth = foreground.at<float>(cv::Point((int)component->centerOfMass.x, (int)component->centerOfMass.y));
 
-    m_components.push_back(component);
+        m_components.push_back(component);
+    }
 }
 
 std::vector<unsigned int> ConnectedComponentLabeling::findNearbyComponents(unsigned int id)

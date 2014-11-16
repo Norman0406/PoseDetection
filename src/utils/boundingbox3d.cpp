@@ -46,7 +46,7 @@ const cv::Point3f& BoundingBox3D::getCenter() const
 
 const cv::Point3f& BoundingBox3D::getSize() const
 {
-    return Point3f;
+    return m_size;
 }
 
 float BoundingBox3D::getArea() const
