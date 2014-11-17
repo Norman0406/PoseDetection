@@ -10,7 +10,14 @@ struct ConnectedComponent;
 
 struct TrackingObject
 {
-    int id;
+    enum TrackingState {
+        TS_ACTIVE,  // the object is currently tracked
+        TS_LOST     // the object could not be found and should be deleted
+    };
+
+    unsigned int id;
+    int frames;
+    TrackingState state;
     std::shared_ptr<ConnectedComponent> latestComponent;
 };
 

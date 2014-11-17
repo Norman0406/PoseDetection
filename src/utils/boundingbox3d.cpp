@@ -76,4 +76,34 @@ float BoundingBox3D::getAnchor(AnchorType anchor) const
     }
     return -1;
 }
+
+float BoundingBox3D::getOverlapArea(const BoundingBox3D& box1,
+                                    const BoundingBox3D& box2)
+{
+    const float top = std::max(box1.getAnchor(AT_TOP), box2.getAnchor(AT_TOP));
+    const float right = std::min(box1.getAnchor(AT_RIGHT), box2.getAnchor(AT_RIGHT));
+    const float left = std::max(box1.getAnchor(AT_LEFT), box2.getAnchor(AT_LEFT));
+    const float bottom = std::min(box1.getAnchor(AT_BOTTOM), box2.getAnchor(AT_BOTTOM));
+    const float back = std::max(box1.getAnchor(AT_BACK), box2.getAnchor(AT_BACK));
+    const float front= std::min(box1.getAnchor(AT_FRONT), box2.getAnchor(AT_FRONT));
+
+    return (right - left) * (bottom - top) * (back - front);
+}
+
+float BoundingBox3D::getOverlapArea(const BoundingBox3D& other) const
+{
+    return BoundingBox3D::getOverlapArea(*this, other);
+}
+
+float BoundingBox3D::getOverlapFactor(const BoundingBox3D& other) const
+{
+    float area = getOverlapArea(other);
+    return area / (float)getArea();
+}
+
+float BoundingBox3D::getAnchorDistance(AnchorType anchor,
+                                       const BoundingBox3D& other) const
+{
+    return fabs(getAnchor(anchor) - other.getAnchor(anchor));
+}
 }

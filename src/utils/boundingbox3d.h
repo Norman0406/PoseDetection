@@ -62,6 +62,31 @@ public:
      */
     float getAnchor(AnchorType anchor) const;
 
+    /**
+     * @brief Computes the overlapping area between box1 and box2 in meters
+     */
+    static float getOverlapArea(const BoundingBox3D& box1,
+                                const BoundingBox3D& box2);
+
+    /**
+     * @brief Computes the overlapping area between this box and the other box in meters
+     */
+    float getOverlapArea(const BoundingBox3D& other) const;
+
+    /**
+     * @brief Computes the overlapping factor between this box and the other box, i.e. the
+     * percentage of the overlapping area in this box. If this box is completely inside the
+     * other box, the result will be 1.
+     */
+    float getOverlapFactor(const BoundingBox3D& other) const;
+
+    /**
+     * @brief Computes the metric distance of the specified anchor point between this box
+     * and the other box.
+     */
+    float getAnchorDistance(AnchorType anchor,
+                            const BoundingBox3D& other) const;
+
 private:
     // direct information
     cv::Point3f m_minPoint;
