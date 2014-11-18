@@ -47,8 +47,6 @@ private:
     std::vector<std::shared_ptr<ConnectedComponent> > m_components;
 
     float m_maxDistance;
-
-    cv::Mat temp;
 };
 }
 

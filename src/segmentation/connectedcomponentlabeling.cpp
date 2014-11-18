@@ -41,14 +41,11 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground,
     // create a new label map
     if (foreground.cols != m_labelMap.cols || foreground.rows != m_labelMap.rows) {
         m_labelMap = cv::Mat(foreground.rows, foreground.cols, CV_32S);
-        temp = cv::Mat(foreground.rows, foreground.cols, CV_8UC3);
         m_tempComponent = cv::Mat(foreground.rows, foreground.cols, CV_8UC1);
     }
     m_labelMap.setTo(0);
 
     m_components.clear();
-
-    temp.setTo(0);
 
     // find connected components until each point has been labelled
     unsigned int nextLabel = 1;
@@ -57,8 +54,6 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground,
             cv::Point curPoint(i, j);
             const unsigned int& label = m_labelMap.at<unsigned int>(curPoint);
             const float& depth = foreground.at<float>(curPoint);
-
-            temp.at<cv::Vec3b>(curPoint) = cv::Vec3b(depth * 100, depth * 100, depth * 100);
 
             if (depth > 0 && label == 0) {
                 findConnectedComponents(foreground, pointCloud, curPoint, nextLabel);
@@ -71,11 +66,7 @@ void ConnectedComponentLabeling::process(const cv::Mat& foreground,
     for (size_t i = 0; i < m_components.size(); i++) {
         std::shared_ptr<ConnectedComponent>& component = m_components[i];
         component->nearbyIds = findNearbyComponents(component->id);
-
-        cv::rectangle(temp, component->boundingBox2d.getMinPoint(), component->boundingBox2d.getMaxPoint(), cv::Scalar(0, 0, 255));
     }
-
-    cv::imshow("Temp", temp);
 }
 
 void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foreground,

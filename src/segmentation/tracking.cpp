@@ -65,7 +65,7 @@ void Tracking::process(const cv::Mat& depthMap,
             object->id = getNextFreeId();
             object->frames = 1;
             object->state = TrackingObject::TS_ACTIVE;
-            object->latestComponent = components[i];
+            object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(components[i]));
             m_trackingObjects.push_back(object);
         }
         return;
@@ -81,7 +81,7 @@ void Tracking::process(const cv::Mat& depthMap,
     // try to find correspondences for already tracked objects
     for (size_t i = 0; i < m_trackingObjects.size(); i++) {
         std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
-        const std::shared_ptr<ConnectedComponent>& objectComponent = object->latestComponent;
+        const std::shared_ptr<MergedComponent>& objectComponent = object->currentComponent;
 
         // will store the selected nearest component
         float minAnchorDist = std::numeric_limits<float>::infinity();
@@ -127,7 +127,8 @@ void Tracking::process(const cv::Mat& depthMap,
             // a nearest component has been found for this tracking object
             object->frames++;
             object->state = TrackingObject::TS_ACTIVE;
-            object->latestComponent = nearestComponent;
+            object->previousComponent = object->currentComponent;
+            object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(nearestComponent));
             assignedComponents[nearestComponentIndex] = true;
         }
         else {
@@ -146,10 +147,96 @@ void Tracking::process(const cv::Mat& depthMap,
             object->id = getNextFreeId();
             object->frames = 1;
             object->state = TrackingObject::TS_ACTIVE;
-            object->latestComponent = component;
+            object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(component));
             m_trackingObjects.push_back(object);
         }
     }
+
+    // resolve splits: multiple components are new that share the same bounding box of one previously tracked object
+
+    for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+        std::shared_ptr<TrackingObject>& prevObject = m_trackingObjects[i];
+
+        // take older objects
+        if (prevObject->frames > 1 && prevObject->state == TrackingObject::TS_ACTIVE) {
+            std::vector<std::shared_ptr<TrackingObject>> objectsToSplit;
+
+            for (size_t j = 0; j < m_trackingObjects.size(); j++) {
+                std::shared_ptr<TrackingObject>& newObject = m_trackingObjects[j];
+
+                // don't compare the same object
+                if (i == j)
+                    continue;
+
+                // and look for new objects and add if they almost completely overlap the previous bounding box
+                if (newObject->frames == 1 && newObject->state == TrackingObject::TS_ACTIVE) {
+                    float overlapFactor1 = newObject->currentComponent->boundingBox2d.getOverlapFactor(prevObject->previousComponent->boundingBox2d);
+                    //float overlapFactor2 = prevObject->previousComponent->boundingBox2d.getOverlapFactor(newObject->currentComponent->boundingBox2d);
+                    if (overlapFactor1 > 0.8)// || overlapFactor2 > 0.8)
+                        objectsToSplit.push_back(newObject);
+                }
+            }
+
+            // create a new merged component and remove the new components
+            for (size_t j = 0; j < objectsToSplit.size(); j++) {
+                std::shared_ptr<TrackingObject> object = objectsToSplit[j];
+                const std::shared_ptr<MergedComponent>& component = object->currentComponent;
+
+                // merge all subcomponents with the current component
+                for (size_t k = 0; k < component->mergedComponents.size(); k++)
+                    prevObject->currentComponent->mergedComponents.push_back(component->mergedComponents[k]);
+                prevObject->currentComponent->update();
+
+                // mark the object as lost so it is deleted later
+                object->state = TrackingObject::TS_LOST;
+            }
+        }
+    }
+
+    // special split case: multiple new components that do not overlap one another share the same bounding box of one previously tracked objects (separating people)
+
+    // resolve merges: several separate tracked objects suddenly appear in one combined bounding box
+
+    /*for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+        std::shared_ptr<TrackingObject>& newObject = m_trackingObjects[i];
+
+        // take older objects
+        if (newObject->frames == 1 && newObject->state == TrackingObject::TS_ACTIVE) {
+            std::vector<std::shared_ptr<TrackingObject>> objectsToMerge;
+
+            for (size_t j = 0; j < m_trackingObjects.size(); j++) {
+                std::shared_ptr<TrackingObject>& prevObject = m_trackingObjects[j];
+
+                // don't compare the same object
+                if (i == j)
+                    continue;
+
+                // and look for new objects and add if they almost completely overlap the previous bounding box
+                if (prevObject->frames > 1 && prevObject->state == TrackingObject::TS_ACTIVE) {
+                    float overlapFactor = newObject->currentComponent->boundingBox2d.getOverlapFactor(prevObject->previousComponent->boundingBox2d);
+                    if (overlapFactor > 0.8)
+                        objectsToMerge.push_back(prevObject);
+                }
+            }
+
+            // create a new merged component and remove the new components
+            for (size_t j = 0; j < objectsToMerge.size(); j++) {
+                std::shared_ptr<TrackingObject> object = objectsToMerge[j];
+                const std::shared_ptr<MergedComponent>& component = object->currentComponent;
+
+                // merge all subcomponents with the current component
+                for (size_t k = 0; k < component->mergedComponents.size(); k++)
+                    newObject->currentComponent->mergedComponents.push_back(component->mergedComponents[k]);
+                newObject->currentComponent->update();
+                newObject->id = object->id;
+
+                // mark the object as lost so it is deleted later
+                object->state = TrackingObject::TS_LOST;
+            }
+        }
+    }*/
+
+    // special merge case: several objects are merged whose bounding boxes do not overlap one another (touching people)
 
     // delete lost objects
     for (auto it = m_trackingObjects.begin(); it != m_trackingObjects.end();) {
@@ -160,13 +247,7 @@ void Tracking::process(const cv::Mat& depthMap,
             it++;
     }
 
-    // resolve merge: several separate tracked objects suddenly appear in one combined bounding box
-
-    // special merge case: several objects are merged whose bounding boxes do not overlap one another (touching people)
-
-    // resolve splits: multiple components are new that share the same bounding box of one previously tracked object
-
-    // speciel split case:
+    cv::Mat temp(labelMap.rows, labelMap.cols, CV_8UC3);
 
     // create a correctly labelled tracking image
     for (int i = 0; i < labelMap.cols; i++) {
@@ -176,15 +257,34 @@ void Tracking::process(const cv::Mat& depthMap,
             unsigned int& trackingLabel = m_labelMap.at<unsigned int>(curPoint);
 
             // find the tracking id for this label
-            for (size_t i = 0; i < m_trackingObjects.size(); i++) {
-                const std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
-                if (object->latestComponent->id == label) {
-                    trackingLabel = object->id;
-                    break;
+            for (size_t k = 0; k < m_trackingObjects.size(); k++) {
+                const std::shared_ptr<TrackingObject>& object = m_trackingObjects[k];
+
+                // label all subcomponents with the same id
+                for (size_t l = 0; l < object->currentComponent->mergedComponents.size(); l++) {
+                    if (object->currentComponent->mergedComponents[l]->id == label) {
+                        trackingLabel = object->id;
+                        break;
+                    }
                 }
             }
         }
     }
+
+    // get nearby components
+    for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+        std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
+        cv::rectangle(temp, object->currentComponent->boundingBox2d.getMinPoint(), object->currentComponent->boundingBox2d.getMaxPoint(), cv::Scalar(0, 0, 255));
+
+        if (object->currentComponent->mergedComponents.size() > 1) {
+            for (size_t j = 0; j < object->currentComponent->mergedComponents.size(); j++) {
+                cv::rectangle(temp, object->currentComponent->mergedComponents[j]->boundingBox2d.getMinPoint(),
+                              object->currentComponent->mergedComponents[j]->boundingBox2d.getMaxPoint(), cv::Scalar(0, 255, 0));
+            }
+        }
+    }
+
+    cv::imshow("Temp", temp);
 }
 
 int Tracking::getNextFreeId() const
