@@ -10,6 +10,8 @@ class Utils
 public:
     static void getColoredLabelMap(const cv::Mat&, cv::Mat&);
     static cv::Mat getColoredLabelMap(const cv::Mat&);
+    static bool loadCvMat(const char* filename, cv::Mat& image);
+    static bool saveCvMat(const char* filename, const cv::Mat& image);
 
 private:
     Utils();

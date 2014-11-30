@@ -19,6 +19,8 @@ SOURCES += src/main.cpp \
     src/utils/boundingbox3d.cpp \
     src/utils/connectedcomponent.cpp \
     src/utils/exception.cpp \
+    src/utils/numberedfilewriter.cpp \
+    src/utils/numberedfilereader.cpp
 
 HEADERS += src/input/depthcamera.h \
     src/input/depthcamerakinectsdk.h \
@@ -30,7 +32,9 @@ HEADERS += src/input/depthcamera.h \
     src/utils/boundingbox2d.h \
     src/utils/boundingbox3d.h \
     src/utils/connectedcomponent.h \
-    src/utils/exception.h
+    src/utils/exception.h \
+    src/utils/numberedfilewriter.h \
+    src/utils/numberedfilereader.h
 
 win32 {
     DEFINES += _CRT_SECURE_NO_WARNINGS
