@@ -138,8 +138,7 @@ bool Utils::saveCvMat(const char* filename, const cv::Mat& image)
 
     // header size
     const int headerSize = 3 * sizeof(char) +
-        10 * sizeof(int) +
-        sizeof(float);
+        10 * sizeof(int);
 
     // write identification string
     fwrite("CVM", sizeof(char), 3, file);
