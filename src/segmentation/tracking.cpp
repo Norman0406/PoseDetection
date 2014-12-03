@@ -8,7 +8,7 @@ namespace pose
 {
 Tracking::Tracking()
 {
-    setSearchRadius(0.4f);
+    setSearchRadius(0.2f);
     m_minBoundingBoxOverlap = 0.5f;
 }
 
@@ -100,15 +100,54 @@ void Tracking::process(const cv::Mat& depthMap,
             float overlapFactor1 = objectComponent->boundingBox2d.getOverlapFactor(component->boundingBox2d);
             float overlapFactor2 = component->boundingBox2d.getOverlapFactor(objectComponent->boundingBox2d);
 
-            if ((overlapFactor1 > m_minBoundingBoxOverlap || overlapFactor2 > m_minBoundingBoxOverlap)) {
+            //if ((overlapFactor1 > m_minBoundingBoxOverlap || overlapFactor2 > m_minBoundingBoxOverlap)) {
+            if (true) {
                 // bounding boxes overlap at least the minimum value and they are similar in size
 
+                float distance = Utils::distance(objectComponent->boundingBox3d, component->boundingBox3d, m_searchRadius);
+
+                if (distance < minAnchorDist && distance < m_searchRadius) {
+                    minAnchorDist = distance;
+                    nearestComponent = component;
+                    nearestComponentIndex = j;
+                }
+
                 // compute the distance between left and right bounding box anchor lines
-                float distLeft = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_LEFT, component->boundingBox3d);
+                /*float distLeft = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_LEFT, component->boundingBox3d);
                 float distRight = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_RIGHT, component->boundingBox3d);
+                float distTop = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_TOP, component->boundingBox3d);
+                float distBottom = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_BOTTOM, component->boundingBox3d);
+
+                float d1 = sqrtf(distLeft * distLeft + distTop * distTop);
+                float d2 = sqrtf(distLeft * distLeft + distBottom * distBottom);
+                float d3 = sqrtf(distRight * distRight + distTop * distTop);
+                float d4 = sqrtf(distRight * distRight + distBottom * distBottom);
+
+                if (d1 < m_searchRadius || d2 < m_searchRadius || d3 < m_searchRadius || d4 < m_searchRadius) {
+                    if (d1 < minAnchorDist) {
+                        minAnchorDist = d1;
+                        nearestComponent = component;
+                        nearestComponentIndex = j;
+                    }
+                    else if (d2 < minAnchorDist) {
+                        minAnchorDist = d2;
+                        nearestComponent = component;
+                        nearestComponentIndex = j;
+                    }
+                    else if (d3 < minAnchorDist) {
+                        minAnchorDist = d3;
+                        nearestComponent = component;
+                        nearestComponentIndex = j;
+                    }
+                    else if (d4 < minAnchorDist) {
+                        minAnchorDist = d4;
+                        nearestComponent = component;
+                        nearestComponentIndex = j;
+                    }
+                }*/
 
                 // either one of them has to be similar
-                if (distLeft < m_searchRadius || distRight < m_searchRadius) {
+                /*if (distLeft < m_searchRadius || distRight < m_searchRadius) {
                     if (distLeft < minAnchorDist) {
                         minAnchorDist = distLeft;
                         nearestComponent = component;
@@ -119,7 +158,7 @@ void Tracking::process(const cv::Mat& depthMap,
                         nearestComponent = component;
                         nearestComponentIndex = j;
                     }
-                }
+                }*/
             }
         }
 
@@ -154,7 +193,7 @@ void Tracking::process(const cv::Mat& depthMap,
 
     // resolve splits: multiple components are new that share the same bounding box of one previously tracked object
 
-    for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+    /*for (size_t i = 0; i < m_trackingObjects.size(); i++) {
         std::shared_ptr<TrackingObject>& prevObject = m_trackingObjects[i];
 
         // take older objects
@@ -194,7 +233,7 @@ void Tracking::process(const cv::Mat& depthMap,
                 object->state = TrackingObject::TS_LOST;
             }
         }
-    }
+    }*/
 
     // TODO: merging is only valid as long as the components are not too far away from each other. In this case, detect a split
 

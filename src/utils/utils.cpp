@@ -1,4 +1,5 @@
 #include "utils.h"
+#include "boundingbox3d.h"
 #include <iostream>
 
 namespace pose
@@ -65,7 +66,6 @@ bool Utils::loadCvMat(const char* filename, cv::Mat& image)
     cv::Size origSize(0, 0);
     cv::Point startPoint(0, 0);
     int size = 0;
-    float ts = 0;
 
     char buffer[4];
     fread(&buffer, sizeof(char), 3, file);
@@ -129,7 +129,6 @@ bool Utils::saveCvMat(const char* filename, const cv::Mat& image)
 #endif
 
     // process roi information if available
-    size_t step = image.step;
     cv::Size origSize = cv::Size(0, 0);
     cv::Point startPoint = cv::Point(0, 0);
 
@@ -161,5 +160,96 @@ bool Utils::saveCvMat(const char* filename, const cv::Mat& image)
     fclose(file);
 
     return true;
+}
+
+float distancePrio1(const BoundingBox3D& box1, const BoundingBox3D& box2)
+{
+    float distLeft = box1.getAnchorDistance(BoundingBox3D::AT_LEFT, box2);
+    float distTop = box1.getAnchorDistance(BoundingBox3D::AT_TOP, box2);
+    float distRight = box1.getAnchorDistance(BoundingBox3D::AT_RIGHT, box2);
+    float distBottom = box1.getAnchorDistance(BoundingBox3D::AT_BOTTOM, box2);
+
+    return sqrtf(distLeft * distLeft + distTop * distTop + distRight * distRight + distBottom * distBottom);
+    //return (distLeft + distTop + distRight + distBottom) / 4.0f;
+    //return distLeft + distTop + distRight + distBottom;
+}
+
+float distancePrio2(const BoundingBox3D& box1, const BoundingBox3D& box2)
+{
+    float distLeft = box1.getAnchorDistance(BoundingBox3D::AT_LEFT, box2);
+    float distTop = box1.getAnchorDistance(BoundingBox3D::AT_TOP, box2);
+    float distRight = box1.getAnchorDistance(BoundingBox3D::AT_RIGHT, box2);
+    float distBottom = box1.getAnchorDistance(BoundingBox3D::AT_BOTTOM, box2);
+
+    float d1 = sqrtf(distLeft * distLeft + distTop * distTop + distRight * distRight);
+    float d2 = sqrtf(distLeft * distLeft + distRight * distRight + distBottom * distBottom);
+    float d3 = sqrtf(distTop * distTop + distRight * distRight + distBottom * distBottom);
+
+    return std::min(d1, std::min(d2, d3));
+}
+
+float distancePrio3(const BoundingBox3D& box1, const BoundingBox3D& box2)
+{
+    float distLeft = box1.getAnchorDistance(BoundingBox3D::AT_LEFT, box2);
+    float distTop = box1.getAnchorDistance(BoundingBox3D::AT_TOP, box2);
+    float distRight = box1.getAnchorDistance(BoundingBox3D::AT_RIGHT, box2);
+    float distBottom = box1.getAnchorDistance(BoundingBox3D::AT_BOTTOM, box2);
+
+    float d1 = sqrtf(distLeft * distLeft + distTop * distTop);
+    float d2 = sqrtf(distLeft * distLeft + distRight * distRight);
+    float d3 = sqrtf(distLeft * distLeft + distBottom * distBottom);
+    float d4 = sqrtf(distTop * distTop + distRight * distRight);
+    float d5 = sqrtf(distTop * distTop + distBottom * distBottom);
+    float d6 = sqrtf(distRight * distRight + distBottom * distBottom);
+
+    return std::min(d1, std::min(d2, std::min(d3, std::min(d4, std::min(d5, d6)))));
+}
+
+float distancePrio4(const BoundingBox3D& box1, const BoundingBox3D& box2)
+{
+    float distLeft = box1.getAnchorDistance(BoundingBox3D::AT_LEFT, box2);
+    float distTop = box1.getAnchorDistance(BoundingBox3D::AT_TOP, box2);
+    float distRight = box1.getAnchorDistance(BoundingBox3D::AT_RIGHT, box2);
+    float distBottom = box1.getAnchorDistance(BoundingBox3D::AT_BOTTOM, box2);
+
+    return std::min(distLeft, std::min(distTop, std::min(distRight, distBottom)));
+}
+
+float Utils::distance(const BoundingBox3D& box1, const BoundingBox3D& box2, float searchRadius)
+{
+    /* priorisierung:
+     * 1.)  AT_LEFT + AT_TOP + AT_RIGHT + AT_BOTTOM
+     *
+     * 2.)  AT_LEFT + AT_TOP + AT_RIGHT
+     *      AT_LEFT + AT_RIGHT + AT_BOTTOM
+     *      AT_TOP + AT_RIGHT + AT_BOTTOM
+     *
+     * 3.)  AT_LEFT + AT_TOP
+     *      AT_LEFT + AT_RIGHT
+     *      AT_LEFT + AT_BOTTOM
+     *      AT_TOP + AT_RIGHT
+     *      AT_TOP + AT_BOTTOM
+     *      AT_RIGHT + AT_BOTTOM
+     *
+     * 4.)  AT_LEFT
+     *      AT_TOP
+     *      AT_RIGHT
+     *      AT_BOTTOM
+     */
+
+    float dist1 = distancePrio1(box1, box2);
+    /*if (dist1 < searchRadius)
+        return dist1;*/
+
+    float dist2 = distancePrio2(box1, box2);
+    /*if (dist2 < searchRadius)
+        return dist2;*/
+
+    float dist3 = distancePrio3(box1, box2);
+    /*if (dist3 < searchRadius)
+        return dist3;*/
+
+    //float dist4 = distancePrio4(box1, box2);
+    return std::min(dist1, std::min(dist2, dist3));
 }
 }
