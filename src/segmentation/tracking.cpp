@@ -327,42 +327,4 @@ void Tracking::createLabelMap(const cv::Mat& labelMap)
 
     cv::imshow("Temp", temp);
 }
-
-int Tracking::getNextFreeId(const std::vector<std::shared_ptr<TrackingObject>>& objects) const
-{
-    int id = 1;
-
-    bool idFound = false;
-    do {
-        idFound = false;
-        for (size_t i = 0; i < objects.size(); i++) {
-            if (objects[i]->id == id) {
-                idFound = true;
-                id++;
-                break;
-            }
-        }
-    } while (idFound);
-
-    return id;
-}
-
-int Tracking::getNextFreeId(const std::vector<std::shared_ptr<TrackingCluster>>& clusters) const
-{
-    int id = 1;
-
-    bool idFound = false;
-    do {
-        idFound = false;
-        for (size_t i = 0; i < clusters.size(); i++) {
-            if (clusters[i]->id == id) {
-                idFound = true;
-                id++;
-                break;
-            }
-        }
-    } while (idFound);
-
-    return id;
-}
 }

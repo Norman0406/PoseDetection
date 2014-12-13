@@ -131,8 +131,9 @@ private:
     void resolveSplits();
     void deleteLostObjects();
     void createLabelMap(const cv::Mat& labelMap);
-    int getNextFreeId(const std::vector<std::shared_ptr<TrackingObject>>& objects) const;
-    int getNextFreeId(const std::vector<std::shared_ptr<TrackingCluster>>& clusters) const;
+
+    template <typename T>
+    int getNextFreeId(const std::vector<std::shared_ptr<T>>& objects) const;
 
     cv::Mat m_labelMap;
     cv::Mat m_coloredLabelMap;
@@ -142,6 +143,27 @@ private:
     float m_searchRadius;
     float m_minBoundingBoxOverlap;
 };
+
+template <typename T>
+int Tracking::getNextFreeId(const std::vector<std::shared_ptr<T>>& objects) const
+{
+    int id = 1;
+
+    bool idFound = false;
+    do {
+        idFound = false;
+        for (size_t i = 0; i < objects.size(); i++) {
+            if (objects[i]->id == id) {
+                idFound = true;
+                id++;
+                break;
+            }
+        }
+    } while (idFound);
+
+    return id;
+}
+
 }
 
 #endif // LABELING_H
