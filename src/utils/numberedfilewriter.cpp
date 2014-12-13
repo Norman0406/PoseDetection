@@ -25,7 +25,10 @@ NumberedFileWriter::~NumberedFileWriter()
 
 void NumberedFileWriter::reset()
 {
+    boost::mutex::scoped_lock(m_mutex);
     m_fileIndex = 0;
+    while (!m_queue.empty())
+        m_queue.pop();
 }
 
 void NumberedFileWriter::write(const cv::Mat& image)

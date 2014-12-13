@@ -7,6 +7,8 @@ namespace pose
 {
 class BoundingBox3D;
 
+#define UNUSED(x) (void)(x)
+
 class Utils
 {
 public:

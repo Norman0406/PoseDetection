@@ -56,6 +56,11 @@ void NumberedFileReader::setEndFrame(int frame)
     m_endFrame = frame;
 }
 
+int NumberedFileReader::getFrameIndex() const
+{
+    return m_fileIndex;
+}
+
 void NumberedFileReader::reset()
 {
     m_loop = false;

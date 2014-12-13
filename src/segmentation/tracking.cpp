@@ -8,7 +8,7 @@ namespace pose
 {
 Tracking::Tracking()
 {
-    setSearchRadius(0.2f);
+    setSearchRadius(0.1f);
     m_minBoundingBoxOverlap = 0.5f;
 }
 
@@ -37,12 +37,23 @@ void Tracking::process(const cv::Mat& depthMap,
                        const std::vector<std::shared_ptr<ConnectedComponent>>& components,
                        const cv::Mat& projectionMatrix)
 {
+    UNUSED(projectionMatrix);
+
     // create a new label map
     if (depthMap.cols != m_labelMap.cols || depthMap.rows != m_labelMap.rows) {
         m_labelMap = cv::Mat(depthMap.rows, depthMap.cols, CV_32S);
     }
     m_labelMap.setTo(0);
 
+    createAssignments(components);
+    cluster();
+    //resolveSplits();
+    deleteLostObjects();
+    createLabelMap(labelMap);
+}
+
+void Tracking::createAssignments(const std::vector<std::shared_ptr<ConnectedComponent>>& components)
+{
     // This is a very simple but fast tracking algorithm. It is not optimal, since an optimal solution can only
     // be retrieved by solving the assignment problem. However, it seems to be feasible in most ways. Assigning
     // newly detected components to tracked objects works by means of a bounding box overlapping criterion and
@@ -50,26 +61,6 @@ void Tracking::process(const cv::Mat& depthMap,
     // that define the bounding box. This guarantees that a still standing person that is temporally overlapped
     // by another person can still be tracked, since one of the bounding box planes will not move while the other
     // will adapt to the overlapping object.
-
-    if (m_trackingObjects.empty()) {
-        // no need to do anything
-        if (components.empty())
-            return;
-
-        // TODO: already regard overlapping object to merge at this point
-        // maybe already give in merged components
-
-        // create a new tracking object for each detected component
-        for (size_t i = 0; i < components.size(); i++) {
-            std::shared_ptr<TrackingObject> object(new TrackingObject());
-            object->id = getNextFreeId();
-            object->frames = 1;
-            object->state = TrackingObject::TS_ACTIVE;
-            object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(components[i]));
-            m_trackingObjects.push_back(object);
-        }
-        return;
-    }
 
     // see https://github.com/WeatherGod/MHT
     // http://www.polymtl.ca/litiv/doc/TorabiBilodeauCRV2009.pdf    (mht blob tracking)
@@ -81,7 +72,7 @@ void Tracking::process(const cv::Mat& depthMap,
     // try to find correspondences for already tracked objects
     for (size_t i = 0; i < m_trackingObjects.size(); i++) {
         std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
-        const std::shared_ptr<MergedComponent>& objectComponent = object->currentComponent;
+        const std::shared_ptr<ConnectedComponent>& objectComponent = object->currentComponent;
 
         // will store the selected nearest component
         float minAnchorDist = std::numeric_limits<float>::infinity();
@@ -97,8 +88,8 @@ void Tracking::process(const cv::Mat& depthMap,
                 continue;
 
             // compute the overlap factor between new component and existing tracking object
-            float overlapFactor1 = objectComponent->boundingBox2d.getOverlapFactor(component->boundingBox2d);
-            float overlapFactor2 = component->boundingBox2d.getOverlapFactor(objectComponent->boundingBox2d);
+            //float overlapFactor1 = objectComponent->boundingBox2d.getOverlapFactor(component->boundingBox2d);
+            //float overlapFactor2 = component->boundingBox2d.getOverlapFactor(objectComponent->boundingBox2d);
 
             //if ((overlapFactor1 > m_minBoundingBoxOverlap || overlapFactor2 > m_minBoundingBoxOverlap)) {
             if (true) {
@@ -111,54 +102,6 @@ void Tracking::process(const cv::Mat& depthMap,
                     nearestComponent = component;
                     nearestComponentIndex = j;
                 }
-
-                // compute the distance between left and right bounding box anchor lines
-                /*float distLeft = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_LEFT, component->boundingBox3d);
-                float distRight = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_RIGHT, component->boundingBox3d);
-                float distTop = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_TOP, component->boundingBox3d);
-                float distBottom = objectComponent->boundingBox3d.getAnchorDistance(BoundingBox3D::AT_BOTTOM, component->boundingBox3d);
-
-                float d1 = sqrtf(distLeft * distLeft + distTop * distTop);
-                float d2 = sqrtf(distLeft * distLeft + distBottom * distBottom);
-                float d3 = sqrtf(distRight * distRight + distTop * distTop);
-                float d4 = sqrtf(distRight * distRight + distBottom * distBottom);
-
-                if (d1 < m_searchRadius || d2 < m_searchRadius || d3 < m_searchRadius || d4 < m_searchRadius) {
-                    if (d1 < minAnchorDist) {
-                        minAnchorDist = d1;
-                        nearestComponent = component;
-                        nearestComponentIndex = j;
-                    }
-                    else if (d2 < minAnchorDist) {
-                        minAnchorDist = d2;
-                        nearestComponent = component;
-                        nearestComponentIndex = j;
-                    }
-                    else if (d3 < minAnchorDist) {
-                        minAnchorDist = d3;
-                        nearestComponent = component;
-                        nearestComponentIndex = j;
-                    }
-                    else if (d4 < minAnchorDist) {
-                        minAnchorDist = d4;
-                        nearestComponent = component;
-                        nearestComponentIndex = j;
-                    }
-                }*/
-
-                // either one of them has to be similar
-                /*if (distLeft < m_searchRadius || distRight < m_searchRadius) {
-                    if (distLeft < minAnchorDist) {
-                        minAnchorDist = distLeft;
-                        nearestComponent = component;
-                        nearestComponentIndex = j;
-                    }
-                    else if (distRight < minAnchorDist) {
-                        minAnchorDist = distRight;
-                        nearestComponent = component;
-                        nearestComponentIndex = j;
-                    }
-                }*/
             }
         }
 
@@ -167,7 +110,7 @@ void Tracking::process(const cv::Mat& depthMap,
             object->frames++;
             object->state = TrackingObject::TS_ACTIVE;
             object->previousComponent = object->currentComponent;
-            object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(nearestComponent));
+            object->currentComponent = nearestComponent;
             assignedComponents[nearestComponentIndex] = true;
         }
         else {
@@ -183,14 +126,91 @@ void Tracking::process(const cv::Mat& depthMap,
         // only create a new trajectory if this component has not already been assigned
         if (assignedComponents[i] == false) {
             std::shared_ptr<TrackingObject> object(new TrackingObject());
-            object->id = getNextFreeId();
+            object->id = getNextFreeId(m_trackingObjects);
             object->frames = 1;
             object->state = TrackingObject::TS_ACTIVE;
-            object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(component));
+            object->currentComponent = component;
             m_trackingObjects.push_back(object);
         }
     }
+}
 
+void Tracking::cluster()
+{
+    // find the biggest object
+    // find smaller objects that have some overlap
+    // assign all objects into the same cluster
+
+    // only cluster objects that are either new and don't belong to any cluster,
+    // or that belong to the same cluster
+
+    std::vector<unsigned int> assignedObjects;
+    assignedObjects.reserve(m_trackingObjects.size());
+    do {
+        // find biggest object
+        std::shared_ptr<TrackingObject> biggestObject;
+        for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+            std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
+
+            bool hasBeenAssigned = std::find(assignedObjects.begin(), assignedObjects.end(), object->id) != assignedObjects.end();
+            if (!hasBeenAssigned) {
+                if (!biggestObject || object->currentComponent->area > biggestObject->currentComponent->area)
+                    biggestObject = object;
+            }
+        }
+
+        if (biggestObject) {
+            // find or create the associated cluster
+            std::shared_ptr<TrackingCluster> cluster;
+            if (biggestObject->assignedCluster) {
+                cluster = biggestObject->assignedCluster;
+                cluster->frames++;
+            }
+            else {
+                cluster = std::shared_ptr<TrackingCluster>(new TrackingCluster());
+                cluster->id = getNextFreeId(m_trackingClusters);
+                cluster->frames = 1;
+                cluster->clusterObjects.push_back(biggestObject);
+                biggestObject->assignedCluster = cluster;
+                m_trackingClusters.push_back(cluster);
+            }
+
+            // find smaller objects and merge them into the same cluster
+            for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+                std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
+
+                bool hasBeenAssigned = std::find(assignedObjects.begin(), assignedObjects.end(), object->id) != assignedObjects.end();
+                if (object == biggestObject || hasBeenAssigned)
+                    continue;
+
+                // object can only be assigned if has either not been assigned before or if the cluster id is the same
+                //bool objectCanBeAssigned = !object->assignedCluster || object->assignedCluster->id == cluster->id;
+
+                // compute overlap and assign to cluster
+                float factor = 0;
+                //float overlapFactor = biggestObject->currentComponent->boundingBox2d.getOverlapFactor(object->currentComponent->boundingBox2d);
+                float overlapFactor = object->currentComponent->boundingBox2d.getOverlapFactor(biggestObject->currentComponent->boundingBox2d);
+                if (overlapFactor > factor) {
+
+                    bool isContained = std::find(cluster->clusterObjects.begin(), cluster->clusterObjects.end(), object) != cluster->clusterObjects.end();
+
+                    if (!isContained) {
+                        cluster->clusterObjects.push_back(object);
+                        object->assignedCluster = cluster;
+                    }
+                }
+                /*else
+                    object->assignedCluster.reset();*/
+            }
+
+            for (size_t i = 0; i < cluster->clusterObjects.size(); i++)
+                assignedObjects.push_back(cluster->clusterObjects[i]->id);
+        }
+    } while (assignedObjects.size() < m_trackingObjects.size());
+}
+
+void Tracking::resolveSplits()
+{
     // resolve splits: multiple components are new that share the same bounding box of one previously tracked object
 
     /*for (size_t i = 0; i < m_trackingObjects.size(); i++) {
@@ -234,67 +254,30 @@ void Tracking::process(const cv::Mat& depthMap,
             }
         }
     }*/
+}
 
-    // TODO: merging is only valid as long as the components are not too far away from each other. In this case, detect a split
+void Tracking::deleteLostObjects()
+{
+    // clean up tracking clusters
+    for (auto it1 = m_trackingClusters.begin(); it1 != m_trackingClusters.end();) {
+        const std::shared_ptr<TrackingCluster>& cluster = *it1;
 
-    // check if the merged components still overlap and split if they don't
-    // maybe also check if the components are far away from each other
-
-    /*int size = m_trackingObjects.size();
-    for (size_t i = 0; i < size; i++) {
-        std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
-
-        if (object->frames > 1 && object->state == TrackingObject::TS_ACTIVE) {
-            std::vector<std::shared_ptr<ConnectedComponent>> objectsToSplit;
-
-            for (auto it1 = object->currentComponent->mergedComponents.begin(); it1 != object->currentComponent->mergedComponents.end(); it1++) {
-                const std::shared_ptr<ConnectedComponent>& component1 = *it1;
-
-                for (auto it2 = object->currentComponent->mergedComponents.begin(); it2 != object->currentComponent->mergedComponents.end(); it2++) {
-                    if (it1 == it2)
-                        continue;
-
-                    const std::shared_ptr<ConnectedComponent>& component2 = *it2;
-
-                    float overlapFactor = component1->boundingBox2d.getOverlapFactor(component2->boundingBox2d);
-                    if (overlapFactor < 0.1) {
-                        objectsToSplit.push_back(component2);
-                    }
-                }
-            }
-
-            // create a new trajectory for split objects
-            for (size_t j = 0; j < objectsToSplit.size(); j++) {
-                const std::shared_ptr<ConnectedComponent>& component = objectsToSplit[j];
-
-                // create a new tracking object for the split component
-                std::shared_ptr<TrackingObject> object(new TrackingObject());
-                object->id = getNextFreeId();
-                object->frames = 1;
-                object->state = TrackingObject::TS_ACTIVE;
-                object->currentComponent = std::shared_ptr<MergedComponent>(new MergedComponent(component));
-                m_trackingObjects.push_back(object);
-
-                // remove the split component from the list of merged components
-                auto it = std::find(object->currentComponent->mergedComponents.begin(),
-                                    object->currentComponent->mergedComponents.end(),
-                                    component);
-                object->currentComponent->mergedComponents.erase(it);
-                object->currentComponent->update();
-            }
+        // remove objects that are not tracked anymore
+        for (auto it2 = cluster->clusterObjects.begin(); it2 != cluster->clusterObjects.end();) {
+            if ((*it2)->state == TrackingObject::TS_LOST)
+                it2 = cluster->clusterObjects.erase(it2);
+            else
+                it2++;
         }
-    }*/
 
+        // remove an empty cluster
+        if (cluster->clusterObjects.size() == 0)
+            it1 = m_trackingClusters.erase(it1);
+        else
+            it1++;
+    }
 
-
-
-    // special split case: multiple new components that do not overlap one another share the same bounding box of one previously tracked objects (separating people)
-
-    // resolve merges: several separate tracked objects suddenly appear in one combined bounding box
-
-    // special merge case: several objects are merged whose bounding boxes do not overlap one another (touching people)
-
-    // delete lost objects
+    // delete lost tracking objects
     for (auto it = m_trackingObjects.begin(); it != m_trackingObjects.end();) {
         if ((*it)->state == TrackingObject::TS_LOST) {
             it = m_trackingObjects.erase(it);
@@ -302,7 +285,10 @@ void Tracking::process(const cv::Mat& depthMap,
         else
             it++;
     }
+}
 
+void Tracking::createLabelMap(const cv::Mat& labelMap)
+{
     cv::Mat temp(labelMap.rows, labelMap.cols, CV_8UC3);
     temp.setTo(0);
 
@@ -317,13 +303,10 @@ void Tracking::process(const cv::Mat& depthMap,
             for (size_t k = 0; k < m_trackingObjects.size(); k++) {
                 const std::shared_ptr<TrackingObject>& object = m_trackingObjects[k];
 
-                // label all subcomponents with the same id
-                for (size_t l = 0; l < object->currentComponent->mergedComponents.size(); l++) {
-                    if (object->currentComponent->mergedComponents[l]->id == label) {
-                        trackingLabel = object->id;
-                        temp.at<cv::Vec3b>(curPoint) = cv::Vec3b(255, 255, 255);
-                        break;
-                    }
+                if (object->currentComponent->id == label && object->assignedCluster) {
+                    trackingLabel = object->assignedCluster->id;
+                    temp.at<cv::Vec3b>(curPoint) = cv::Vec3b(255, 255, 255);
+                    break;
                 }
             }
         }
@@ -334,26 +317,45 @@ void Tracking::process(const cv::Mat& depthMap,
         std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
         cv::rectangle(temp, object->currentComponent->boundingBox2d.getMinPoint(), object->currentComponent->boundingBox2d.getMaxPoint(), cv::Scalar(0, 0, 255));
 
-        if (object->currentComponent->mergedComponents.size() > 1) {
+        /*if (object->currentComponent->mergedComponents.size() > 1) {
             for (size_t j = 0; j < object->currentComponent->mergedComponents.size(); j++) {
                 cv::rectangle(temp, object->currentComponent->mergedComponents[j]->boundingBox2d.getMinPoint(),
                               object->currentComponent->mergedComponents[j]->boundingBox2d.getMaxPoint(), cv::Scalar(0, 255, 0));
             }
-        }
+        }*/
     }
 
     cv::imshow("Temp", temp);
 }
 
-int Tracking::getNextFreeId() const
+int Tracking::getNextFreeId(const std::vector<std::shared_ptr<TrackingObject>>& objects) const
 {
     int id = 1;
 
     bool idFound = false;
     do {
         idFound = false;
-        for (size_t i = 0; i < m_trackingObjects.size(); i++) {
-            if (m_trackingObjects[i]->id == id) {
+        for (size_t i = 0; i < objects.size(); i++) {
+            if (objects[i]->id == id) {
+                idFound = true;
+                id++;
+                break;
+            }
+        }
+    } while (idFound);
+
+    return id;
+}
+
+int Tracking::getNextFreeId(const std::vector<std::shared_ptr<TrackingCluster>>& clusters) const
+{
+    int id = 1;
+
+    bool idFound = false;
+    do {
+        idFound = false;
+        for (size_t i = 0; i < clusters.size(); i++) {
+            if (clusters[i]->id == id) {
                 idFound = true;
                 id++;
                 break;

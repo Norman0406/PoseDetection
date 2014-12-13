@@ -21,7 +21,7 @@ void main()
     pose::Tracking* tracking = new pose::Tracking();
 
     std::string depthFiles("d:/sequences/scene1/depth/depth_%i.cvm");
-    std::string pointCloudFiles("d:/sequences/scene1/pointCloud/pointcloud_%i.cvm");
+    std::string pointCloudFiles("d:/sequences/scene1/pointcloud/pointcloud_%i.cvm");
     std::string foregroundFiles("d:/sequences/scene1/foreground/foreground_%i.cvm");
     std::string projectionFile("d:/sequences/scene1/projection.cvm");
     std::string backgroundFile("d:/sequences/scene1/background.cvm");
@@ -30,11 +30,14 @@ void main()
     pose::NumberedFileWriter writerPointCloud(pointCloudFiles);
     pose::NumberedFileWriter writerForeground(foregroundFiles);
 
-    const int startFrame = 200;
-    const int endFrame = 210;
-    pose::NumberedFileReader readerDepth(depthFiles, startFrame, endFrame, true);
-    pose::NumberedFileReader readerPointCloud(pointCloudFiles, startFrame, endFrame, true);
-    pose::NumberedFileReader readerForeground(foregroundFiles, startFrame, endFrame, true);
+    /*const int startFrame = 280;
+    const int endFrame = 300;*/
+    const int startFrame = 0;
+    const int endFrame = -1;
+    const bool loop = true;
+    pose::NumberedFileReader readerDepth(depthFiles, startFrame, endFrame, loop);
+    pose::NumberedFileReader readerPointCloud(pointCloudFiles, startFrame, endFrame, loop);
+    pose::NumberedFileReader readerForeground(foregroundFiles, startFrame, endFrame, loop);
 
     cv::Mat foreground;
     cv::Mat background;
@@ -53,6 +56,8 @@ void main()
             paused = !paused;
         else if (lastKey == 'n' && paused)
             step = true;
+        else if (lastKey == 'f')
+            std::cout << "frame " << readerDepth.getFrameIndex() << std::endl;
 
         if (paused && !step)
             continue;
@@ -67,19 +72,26 @@ void main()
         }
 
         writerDepth.write(camera->getDepthMap());
-        writerPointCloud.write(camera->getPointCloud());*/
+        writerPointCloud.write(camera->getPointCloud());
 
-        // get depth map
-        /*camera->getDepthMap().copyTo(depthMap);
+        camera->getDepthMap().copyTo(depthMap);
         camera->getPointCloud().copyTo(pointCloud);
-        camera->getProjectionMatrix().copyTo(projectionMatrix);*/
+        if (projectionMatrix.empty()) {
+            camera->getProjectionMatrix().copyTo(projectionMatrix);
+            pose::Utils::saveCvMat(projectionFile.c_str(), projectionMatrix);
+        }*/
+
+        int k = 0;
+        if (readerDepth.getFrameIndex() == 138)
+            k = 1;
 
         if (!readerDepth.read(depthMap) || !readerPointCloud.read(pointCloud)) {
-            pose::Utils::saveCvMat(backgroundFile.c_str(), background);
+            //pose::Utils::saveCvMat(backgroundFile.c_str(), background);
             continue;
         }
 
         cv::imshow("Depth", depthMap * 0.2f);
+        //cv::imshow("Background", background * 0.2f);
 
         // compute static background
         /*staticMap->process(depthMap);

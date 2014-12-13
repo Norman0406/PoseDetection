@@ -199,10 +199,11 @@ float distancePrio3(const BoundingBox3D& box1, const BoundingBox3D& box2)
     float d2 = sqrtf(distLeft * distLeft + distRight * distRight);
     float d3 = sqrtf(distLeft * distLeft + distBottom * distBottom);
     float d4 = sqrtf(distTop * distTop + distRight * distRight);
-    float d5 = sqrtf(distTop * distTop + distBottom * distBottom);
+    //float d5 = sqrtf(distTop * distTop + distBottom * distBottom);
     float d6 = sqrtf(distRight * distRight + distBottom * distBottom);
 
-    return std::min(d1, std::min(d2, std::min(d3, std::min(d4, std::min(d5, d6)))));
+    //return std::min(d1, std::min(d2, std::min(d3, std::min(d4, std::min(d5, d6)))));
+    return std::min(d1, std::min(d2, std::min(d3, std::min(d4, d6))));
 }
 
 float distancePrio4(const BoundingBox3D& box1, const BoundingBox3D& box2)

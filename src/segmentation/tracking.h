@@ -9,7 +9,7 @@
 
 namespace pose
 {
-struct MergedComponent
+/*struct MergedComponent
 {
     MergedComponent() {
     }
@@ -81,7 +81,9 @@ struct MergedComponent
             boundingBox3d = BoundingBox3D(bbMinPoint3d, bbMaxPoint3d);
         }
     }
-};
+};*/
+
+struct TrackingCluster;
 
 struct TrackingObject
 {
@@ -93,8 +95,18 @@ struct TrackingObject
     unsigned int id;
     int frames;
     TrackingState state;
-    std::shared_ptr<MergedComponent> previousComponent;
-    std::shared_ptr<MergedComponent> currentComponent;
+    std::shared_ptr<TrackingCluster> assignedCluster;
+    std::shared_ptr<ConnectedComponent> previousComponent;
+    std::shared_ptr<ConnectedComponent> currentComponent;
+    /*std::shared_ptr<MergedComponent> previousComponent;
+    std::shared_ptr<MergedComponent> currentComponent;*/
+};
+
+struct TrackingCluster
+{
+    unsigned int id;
+    int frames;
+    std::vector<std::shared_ptr<TrackingObject>> clusterObjects;
 };
 
 class Tracking
@@ -114,12 +126,19 @@ public:
                  const cv::Mat& projectionMatrix);
 
 private:
-    int getNextFreeId() const;
+    void createAssignments(const std::vector<std::shared_ptr<ConnectedComponent>>& components);
+    void cluster();
+    void resolveSplits();
+    void deleteLostObjects();
+    void createLabelMap(const cv::Mat& labelMap);
+    int getNextFreeId(const std::vector<std::shared_ptr<TrackingObject>>& objects) const;
+    int getNextFreeId(const std::vector<std::shared_ptr<TrackingCluster>>& clusters) const;
 
     cv::Mat m_labelMap;
     cv::Mat m_coloredLabelMap;
 
     std::vector<std::shared_ptr<TrackingObject>> m_trackingObjects;
+    std::vector<std::shared_ptr<TrackingCluster>> m_trackingClusters;
     float m_searchRadius;
     float m_minBoundingBoxOverlap;
 };

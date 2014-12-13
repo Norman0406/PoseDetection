@@ -19,6 +19,8 @@ public:
     void setStartFrame(int frame);
     void setEndFrame(int frame);
 
+    int getFrameIndex() const;
+
     void reset();
     bool read(cv::Mat&);
 

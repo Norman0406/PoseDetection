@@ -18,9 +18,10 @@ public:
 
     void reset();
     void write(const cv::Mat&);
-    void writeLoop();
 
 private:
+    void writeLoop();
+
     std::string m_format;
     int m_fileIndex;
     char m_buffer[512];
