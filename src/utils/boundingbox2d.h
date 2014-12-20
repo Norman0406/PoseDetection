@@ -104,6 +104,11 @@ public:
     float getOverlapFactor(const BoundingBox2D& other) const;
 
     /**
+     * @brief Determines whether this box has some overlapt with the other box.
+     */
+    bool overlapsWith(const BoundingBox2D& other) const;
+
+    /**
      * @brief Computes the pixel distance of the specified anchor point between this box
      * and the other box.
      */

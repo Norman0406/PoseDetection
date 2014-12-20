@@ -46,7 +46,8 @@ void Tracking::process(const cv::Mat& depthMap,
     m_labelMap.setTo(0);
 
     createAssignments(components);
-    cluster();
+    //cluster();
+    cluster2();
     //resolveSplits();
     deleteLostObjects();
     createLabelMap(labelMap);
@@ -191,7 +192,6 @@ void Tracking::cluster()
                 //float overlapFactor = biggestObject->currentComponent->boundingBox2d.getOverlapFactor(object->currentComponent->boundingBox2d);
                 float overlapFactor = object->currentComponent->boundingBox2d.getOverlapFactor(biggestObject->currentComponent->boundingBox2d);
                 if (overlapFactor > factor) {
-
                     bool isContained = std::find(cluster->clusterObjects.begin(), cluster->clusterObjects.end(), object) != cluster->clusterObjects.end();
 
                     if (!isContained) {
@@ -207,6 +207,115 @@ void Tracking::cluster()
                 assignedObjects.push_back(cluster->clusterObjects[i]->id);
         }
     } while (assignedObjects.size() < m_trackingObjects.size());
+}
+
+void Tracking::cluster2()
+{
+    // release previous cluster assignments if bounding boxes do not overlap anymore
+    for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+        std::shared_ptr<TrackingObject>& object1 = m_trackingObjects[i];
+
+        for (size_t j = 0; j < m_trackingObjects.size(); j++) {
+            std::shared_ptr<TrackingObject>& object2 = m_trackingObjects[j];
+
+            if (object1 == object2 || object1->assignedCluster != object2->assignedCluster)
+                continue;
+
+            // mark the compared object as not tracked
+            if (!object1->currentComponent->boundingBox2d.overlapsWith(object2->currentComponent->boundingBox2d)) {
+                object2->assignedCluster.reset();
+            }
+        }
+    }
+
+    // remove objects from clusters that are not tracked anymore
+    for (size_t i = 0; i < m_trackingClusters.size(); i++) {
+        std::shared_ptr<TrackingCluster>& cluster = m_trackingClusters[i];
+
+        for (auto it = cluster->clusterObjects.begin(); it != cluster->clusterObjects.end();) {
+            const std::shared_ptr<TrackingObject>& object = *it;
+            if (!object->assignedCluster)
+                it = cluster->clusterObjects.erase(it);
+            else
+                it++;
+        }
+    }
+
+    // create new cluster assignments for overlapping bounding boxes
+    for (size_t i = 0; i < m_trackingObjects.size(); i++) {
+        std::shared_ptr<TrackingObject>& object1 = m_trackingObjects[i];
+
+        /*std::shared_ptr<TrackingCluster> cluster;
+        if (!object1->assignedCluster) {
+            cluster = std::shared_ptr<TrackingCluster>(new TrackingCluster());
+            cluster->id = getNextFreeId(m_trackingClusters);
+            cluster->frames = 1;
+            cluster->clusterObjects.push_back(object1);
+            object1->assignedCluster = cluster;
+            m_trackingClusters.push_back(cluster);
+        }
+        else {
+            cluster = object1->assignedCluster;
+            cluster->frames++;
+        }*/
+
+        for (size_t j = 0; j < m_trackingObjects.size(); j++) {
+            std::shared_ptr<TrackingObject>& object2 = m_trackingObjects[j];
+
+            /*if (object1 == object2 || object2->assignedCluster != 0)
+                continue;
+
+            if (object1->currentComponent->boundingBox2d.overlapsWith(object2->currentComponent->boundingBox2d)) {
+                bool isContained = std::find(cluster->clusterObjects.begin(), cluster->clusterObjects.end(), object2) != cluster->clusterObjects.end();
+                if (!isContained)
+                    cluster->clusterObjects.push_back(object2);
+                object2->assignedCluster = cluster;
+            }*/
+
+            if (object1 == object2)// || object2->assignedCluster != 0)
+                continue;
+
+            if (object1->currentComponent->boundingBox2d.overlapsWith(object2->currentComponent->boundingBox2d)) {
+
+                std::shared_ptr<TrackingCluster> cluster;
+                if (object1->assignedCluster) {
+
+                }
+                else if (object2->assignedCluster) {
+
+                }
+                else {
+                    cluster = std::shared_ptr<TrackingCluster>(new TrackingCluster());
+                    cluster->id = getNextFreeId(m_trackingClusters);
+                    cluster->frames = 1;
+                    cluster->clusterObjects.push_back(object1);
+                    cluster->clusterObjects.push_back(object2);
+                    object1->assignedCluster = cluster;
+                    m_trackingClusters.push_back(cluster);
+                }
+
+
+
+                if (!object1->assignedCluster) {
+                    cluster = std::shared_ptr<TrackingCluster>(new TrackingCluster());
+                    cluster->id = getNextFreeId(m_trackingClusters);
+                    cluster->frames = 1;
+                    cluster->clusterObjects.push_back(object1);
+                    object1->assignedCluster = cluster;
+                    m_trackingClusters.push_back(cluster);
+                }
+                else {
+                    cluster = object1->assignedCluster;
+                    cluster->frames++;
+                }
+
+                /*bool isContained = std::find(cluster->clusterObjects.begin(), cluster->clusterObjects.end(), object2) != cluster->clusterObjects.end();
+                if (!isContained)
+                    cluster->clusterObjects.push_back(object2);
+                object2->assignedCluster = cluster;*/
+            }
+        }
+    }
 }
 
 void Tracking::resolveSplits()
@@ -270,6 +379,8 @@ void Tracking::deleteLostObjects()
                 it2++;
         }
 
+        cluster->update();
+
         // remove an empty cluster
         if (cluster->clusterObjects.size() == 0)
             it1 = m_trackingClusters.erase(it1);
@@ -305,6 +416,7 @@ void Tracking::createLabelMap(const cv::Mat& labelMap)
 
                 if (object->currentComponent->id == label && object->assignedCluster) {
                     trackingLabel = object->assignedCluster->id;
+                    //trackingLabel = object->id;
                     temp.at<cv::Vec3b>(curPoint) = cv::Vec3b(255, 255, 255);
                     break;
                 }
@@ -313,16 +425,18 @@ void Tracking::createLabelMap(const cv::Mat& labelMap)
     }
 
     // get nearby components
-    for (size_t i = 0; i < m_trackingObjects.size(); i++) {
-        std::shared_ptr<TrackingObject>& object = m_trackingObjects[i];
-        cv::rectangle(temp, object->currentComponent->boundingBox2d.getMinPoint(), object->currentComponent->boundingBox2d.getMaxPoint(), cv::Scalar(0, 0, 255));
+    for (size_t i = 0; i < m_trackingClusters.size(); i++) {
+        const std::shared_ptr<TrackingCluster>& cluster = m_trackingClusters[i];
+        // draw the cluster box red
+        cv::rectangle(temp, cluster->boundingBox2d.getMinPoint() + cv::Point(-2, -2),
+                      cluster->boundingBox2d.getMaxPoint() + cv::Point(2, 2), cv::Scalar(0, 0, 255));
 
-        /*if (object->currentComponent->mergedComponents.size() > 1) {
-            for (size_t j = 0; j < object->currentComponent->mergedComponents.size(); j++) {
-                cv::rectangle(temp, object->currentComponent->mergedComponents[j]->boundingBox2d.getMinPoint(),
-                              object->currentComponent->mergedComponents[j]->boundingBox2d.getMaxPoint(), cv::Scalar(0, 255, 0));
-            }
-        }*/
+        // draw each cluster entry green
+        for (size_t j = 0; j < cluster->clusterObjects.size(); j++) {
+            const std::shared_ptr<TrackingObject>& object = cluster->clusterObjects[j];
+            cv::rectangle(temp, object->currentComponent->boundingBox2d.getMinPoint(),
+                          object->currentComponent->boundingBox2d.getMaxPoint(), cv::Scalar(0, 255, 0));
+        }
     }
 
     cv::imshow("Temp", temp);

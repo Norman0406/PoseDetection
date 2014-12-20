@@ -48,7 +48,7 @@ void NumberedFileWriter::writeLoop()
             m_condition.wait(lock);
 
         // if termiation flag is set, exit the loop
-        if (m_terminateThread)
+        if (m_queue.empty() && m_terminateThread)
             continue;
 
         // get next image off the queue

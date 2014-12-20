@@ -11,6 +11,7 @@ SOURCES += src/main.cpp \
     src/input/depthcamera.cpp \
     src/input/depthcamerakinectsdk.cpp \
     src/input/depthcamerakinectsdk2.cpp \
+    src/input/depthcameradimager.cpp \
     src/segmentation/connectedcomponentlabeling.cpp \
     src/segmentation/tracking.cpp \
     src/segmentation/staticmap.cpp \
@@ -20,11 +21,14 @@ SOURCES += src/main.cpp \
     src/utils/connectedcomponent.cpp \
     src/utils/exception.cpp \
     src/utils/numberedfilewriter.cpp \
-    src/utils/numberedfilereader.cpp
+    src/utils/numberedfilereader.cpp \
+    src/utils/module.cpp \
+    src/utils/timer.cpp
 
 HEADERS += src/input/depthcamera.h \
     src/input/depthcamerakinectsdk.h \
     src/input/depthcamerakinectsdk2.h \
+    src/input/depthcameradimager.h \
     src/segmentation/connectedcomponentlabeling.h \
     src/segmentation/tracking.h \
     src/segmentation/staticmap.h \
@@ -34,12 +38,15 @@ HEADERS += src/input/depthcamera.h \
     src/utils/connectedcomponent.h \
     src/utils/exception.h \
     src/utils/numberedfilewriter.h \
-    src/utils/numberedfilereader.h
+    src/utils/numberedfilereader.h \
+    src/utils/module.h \
+    src/utils/timer.h
 
 win32 {
     DEFINES += _CRT_SECURE_NO_WARNINGS
 
     INCLUDEPATH += $$(_PRO_FILE_PWD_)src \
+        $$(_PRO_FILE_PWD_)external/include \
         $$(OPENCV_DIR_2_4_9)/build/include \
         $$(PCL_DIR_1_7_2)/include \
         $$(EIGEN_DIR_3) \
@@ -49,7 +56,11 @@ win32 {
         $$"C:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\inc"
 
     LIBS += "C:\Program Files\Microsoft SDKs\Kinect\v1.8\lib\x86\Kinect10.lib" \
-        "C:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\lib\x86\Kinect20.lib"
+        "C:\Program Files\Microsoft SDKs\Kinect\v2.0_1409\lib\x86\Kinect20.lib" \
+        "D:\Projekte\GitHub\PoseDetection\external\lib\Dimagerdll.lib"
+        #$$(_PRO_FILE_PWD_)external\lib\Dimagerdll.lib
+
+    OTHER_FILES += "D:\Projekte\GitHub\PoseDetection\external\bin\Dimagerdll.dll"
 
     CONFIG(debug, debug|release) {
         BUILDDIR = debug

@@ -9,26 +9,37 @@
 
 namespace pose
 {
-/*struct MergedComponent
+struct TrackingCluster;
+
+struct TrackingObject
 {
-    MergedComponent() {
-    }
+    enum TrackingState {
+        TS_ACTIVE,  // the object is currently being tracked
+        TS_LOST     // the object could not be found and should be deleted
+    };
 
-    MergedComponent(const std::shared_ptr<ConnectedComponent>& component) {
-        mergedComponents.push_back(component);
-        update();
-    }
+    unsigned int id;
+    int frames;
+    TrackingState state;
+    std::shared_ptr<TrackingCluster> assignedCluster;
+    std::shared_ptr<ConnectedComponent> previousComponent;
+    std::shared_ptr<ConnectedComponent> currentComponent;
+};
 
-    std::vector<std::shared_ptr<ConnectedComponent>> mergedComponents;
+struct TrackingCluster
+{
+    unsigned int id;
+    int frames;
+    std::vector<std::shared_ptr<TrackingObject>> clusterObjects;
     BoundingBox2D   boundingBox2d;
     BoundingBox3D   boundingBox3d;
 
     void update() {
-        if (mergedComponents.size() == 1) {
-            boundingBox2d = mergedComponents[0]->boundingBox2d;
-            boundingBox3d = mergedComponents[0]->boundingBox3d;
+        if (clusterObjects.size() == 1) {
+            boundingBox2d = clusterObjects[0]->currentComponent->boundingBox2d;
+            boundingBox3d = clusterObjects[0]->currentComponent->boundingBox3d;
         }
-        else if (mergedComponents.size() > 1) {
+        else if (clusterObjects.size() > 1) {
             // initialize bounding box
             float bbMinDepth = 1000;
             float bbMaxDepth = 0;
@@ -37,8 +48,8 @@ namespace pose
             cv::Point3f bbMinPoint3d(1000, 1000, 1000);
             cv::Point3f bbMaxPoint3d(-1000, -1000, -1);
 
-            for (size_t i = 0; i < mergedComponents.size(); i++) {
-                const std::shared_ptr<ConnectedComponent>& component = mergedComponents[i];
+            for (size_t i = 0; i < clusterObjects.size(); i++) {
+                const std::shared_ptr<ConnectedComponent>& component = clusterObjects[i]->currentComponent;
 
                 // update 2d bounding box
                 {
@@ -81,32 +92,6 @@ namespace pose
             boundingBox3d = BoundingBox3D(bbMinPoint3d, bbMaxPoint3d);
         }
     }
-};*/
-
-struct TrackingCluster;
-
-struct TrackingObject
-{
-    enum TrackingState {
-        TS_ACTIVE,  // the object is currently being tracked
-        TS_LOST     // the object could not be found and should be deleted
-    };
-
-    unsigned int id;
-    int frames;
-    TrackingState state;
-    std::shared_ptr<TrackingCluster> assignedCluster;
-    std::shared_ptr<ConnectedComponent> previousComponent;
-    std::shared_ptr<ConnectedComponent> currentComponent;
-    /*std::shared_ptr<MergedComponent> previousComponent;
-    std::shared_ptr<MergedComponent> currentComponent;*/
-};
-
-struct TrackingCluster
-{
-    unsigned int id;
-    int frames;
-    std::vector<std::shared_ptr<TrackingObject>> clusterObjects;
 };
 
 class Tracking
@@ -128,6 +113,7 @@ public:
 private:
     void createAssignments(const std::vector<std::shared_ptr<ConnectedComponent>>& components);
     void cluster();
+    void cluster2();
     void resolveSplits();
     void deleteLostObjects();
     void createLabelMap(const cv::Mat& labelMap);

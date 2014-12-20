@@ -106,7 +106,10 @@ int BoundingBox2D::getOverlapArea(const BoundingBox2D& box1,
     const int right = std::min(box1.getAnchor(AT_RIGHT), box2.getAnchor(AT_RIGHT));
     const int bottom = std::min(box1.getAnchor(AT_BOTTOM), box2.getAnchor(AT_BOTTOM));
 
-    return (right - left) * (bottom - top);
+    if (left > right || top > bottom)
+        return 0;
+    else
+        return (right - left) * (bottom - top);
 }
 
 int BoundingBox2D::getOverlapArea(const BoundingBox2D& other) const
@@ -118,6 +121,14 @@ float BoundingBox2D::getOverlapFactor(const BoundingBox2D& other) const
 {
     int area = getOverlapArea(other);
     return area / (float)getArea();
+}
+
+bool BoundingBox2D::overlapsWith(const BoundingBox2D& other) const
+{
+    /*return other.getMinPoint().x < getMaxPoint().x &&
+            other.getMinPoint().y() < getMaxPoint.y() &&
+            other.getMaxPoint().x */
+    return getOverlapArea(other) > 0;
 }
 
 int BoundingBox2D::getAnchorDistance(AnchorType anchor,
