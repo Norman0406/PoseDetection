@@ -15,6 +15,11 @@ SOURCES += src/main.cpp \
     src/segmentation/connectedcomponentlabeling.cpp \
     src/segmentation/tracking.cpp \
     src/segmentation/staticmap.cpp \
+    src/tracking/bone.cpp \
+    src/tracking/joint.cpp \
+    src/tracking/fitting.cpp \
+    src/tracking/skeleton.cpp \
+    src/tracking/skeletonupperbody.cpp \
     src/utils/utils.cpp \
     src/utils/boundingbox2d.cpp \
     src/utils/boundingbox3d.cpp \
@@ -32,6 +37,11 @@ HEADERS += src/input/depthcamera.h \
     src/segmentation/connectedcomponentlabeling.h \
     src/segmentation/tracking.h \
     src/segmentation/staticmap.h \
+    src/tracking/bone.h \
+    src/tracking/joint.h \
+    src/tracking/fitting.h \
+    src/tracking/skeleton.h \
+    src/tracking/skeletonupperbody.h \
     src/utils/utils.h \
     src/utils/boundingbox2d.h \
     src/utils/boundingbox3d.h \
