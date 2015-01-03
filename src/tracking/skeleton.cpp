@@ -25,5 +25,6 @@ const Joint* Skeleton::getJoint(Joint::JointType type) const
 
 void Skeleton::update()
 {
+
 }
 }
