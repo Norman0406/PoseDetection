@@ -11,7 +11,7 @@ public:
     Input(int width, int height);
     ~Input();
 
-    void process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize);
+    void process(const float* depthData, int depthDataSize, const float* pointsData, int pointsDataSize);
 
     /**
      * @brief Check whether the device is ready to process. This is true if all

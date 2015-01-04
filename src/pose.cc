@@ -16,8 +16,8 @@ POSEAPI PoseResult poseInit(PoseContext** context, int width, int height)
 
     (*context)->width = width;
     (*context)->height = height;
-    (*context)->depthFrameSize = (*context)->width * (*context)->height * sizeof(float);
-    (*context)->pointsFrameSize = (*context)->width * (*context)->height * 3 * sizeof(float);
+    (*context)->depthFrameSize = (*context)->width * (*context)->height;
+    (*context)->pointsFrameSize = (*context)->width * (*context)->height * 3;
     (*context)->algorithm = (CAlgorithm*)(new pose::Algorithm(width, height));
 
     if ((*context)->algorithm == NULL)

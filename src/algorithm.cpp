@@ -54,5 +54,8 @@ void Algorithm::process(float* depthData, int depthDataSize, float* pointsData, 
         // fit a skeleton inside each user
         m_fitting->process(depthMap, pointCloud, labelMap, projectionMatrix);
     }
+
+    // TODO: only when debug images are present
+    cv::waitKey(1);
 }
 }

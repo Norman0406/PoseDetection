@@ -17,16 +17,16 @@ Input::~Input()
     m_pointCloud.release();
 }
 
-void Input::process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize)
+void Input::process(const float* depthData, int depthDataSize, const float* pointsData, int pointsDataSize)
 {
     // check data sizes
-    if (depthDataSize != m_depthMap.cols * m_depthMap.rows * m_depthMap.elemSize() ||
-        pointsDataSize != m_pointCloud.cols * m_pointCloud.rows * m_pointCloud.elemSize())
+    if (depthDataSize * sizeof(float) != m_depthMap.cols * m_depthMap.rows * m_depthMap.elemSize() ||
+        pointsDataSize * sizeof(float) != m_pointCloud.cols * m_pointCloud.rows * m_pointCloud.elemSize())
         throw Exception("invalid input data size(s)");
 
     // copy data
-    memcpy(depthData, m_depthMap.data, depthDataSize);
-    memcpy(pointsData, m_pointCloud.data, pointsDataSize);
+    memcpy(m_depthMap.data, depthData, depthDataSize * sizeof(float));
+    memcpy(m_pointCloud.data, pointsData, pointsDataSize * sizeof(float));
 
     // compute projection matrix
     if (!m_pointCloud.empty() && m_projectionMatrix.empty())
