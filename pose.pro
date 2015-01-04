@@ -1,9 +1,10 @@
 TARGET = pose
 TEMPLATE = lib
-CONFIG += staticlib create_prl
+CONFIG += create_prl
 
-SOURCES += src/pose.c \
-    src/input/depthcamera.cpp \
+SOURCES += src/pose.cc \
+    src/algorithm.cpp \
+    src/input/input.cpp \
     src/segmentation/connectedcomponentlabeling.cpp \
     src/segmentation/tracking.cpp \
     src/segmentation/staticmap.cpp \
@@ -23,7 +24,9 @@ SOURCES += src/pose.c \
     src/utils/timer.cpp
 
 HEADERS += include/pose.h \
-    src/input/depthcamera.h \
+    src/internal.h \
+    src/algorithm.h \
+    src/input/input.h \
     src/segmentation/connectedcomponentlabeling.h \
     src/segmentation/tracking.h \
     src/segmentation/staticmap.h \
@@ -57,26 +60,26 @@ win32 {
         QMAKE_CXXFLAGS_DEBUG += /openmp
 
         LIBS += -L$$(BOOST_DIR_1_56)\stage\lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\staticlib\opencv_core249d.lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\staticlib\opencv_imgproc249d.lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\staticlib\opencv_highgui249d.lib
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_core249d.lib \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_imgproc249d.lib \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249d.lib
 
-        #OTHER_FILES += $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_core249d.dll \
-            #$$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_imgproc249d.dll \
-            #$$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_highgui249d.dll
+        OTHER_FILES += $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_core249d.dll \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_imgproc249d.dll \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_highgui249d.dll
     }
     CONFIG(release, debug|release) {
         BUILDDIR = release
         QMAKE_CXXFLAGS_RELEASE += /openmp
 
         LIBS += -L$$(BOOST_DIR_1_56)\stage\lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\staticlib\opencv_core249.lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\staticlib\opencv_imgproc249.lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\staticlib\opencv_highgui249.lib
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_core249.lib \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_imgproc249.lib \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249.lib
 
-        #OTHER_FILES += $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_core249.dll \
-            #$$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_imgproc249.dll \
-            #$$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_highgui249.dll
+        OTHER_FILES += $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_core249.dll \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_imgproc249.dll \
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_highgui249.dll
     }
 
     # copy binary files to output directory

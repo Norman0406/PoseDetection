@@ -1,32 +1,17 @@
-#ifndef DEPTHCAMERA_H
-#define DEPTHCAMERA_H
+#ifndef INPUT_H
+#define INPUT_H
 
 #include <opencv2/opencv.hpp>
 
 namespace pose
 {
-class DepthCamera
+class Input
 {
 public:
-    ~DepthCamera();
+    Input(int width, int height);
+    ~Input();
 
-    /**
-     * @brief Open the device.
-     * @return true if the device was successfully opened.
-     */
-    virtual bool open() = 0;
-
-    /**
-     * @brief Close the device.
-     */
-    virtual void close() = 0;
-
-    /**
-     * @brief Wait until the next available frame is processed. This function also attempts to
-     * reconstruct the projection matrix on each acquired frame until the reconstruction process
-     * succeeds. Projection matrix reconstruction only fails if the image is (mostly) empty.
-     */
-    void waitForData();
+    void process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize);
 
     /**
      * @brief Check whether the device is ready to process. This is true if all
@@ -50,19 +35,16 @@ public:
      */
     const cv::Mat& getProjectionMatrix() const;
 
-protected:
-    DepthCamera();
-
-    virtual void iWaitForData() = 0;
-
-    cv::Mat m_depthMap;
-    cv::Mat m_pointCloud;
-
 private:
     cv::Mat computeProjectionMatrix(const cv::Mat& pointCloud) const;
 
+    cv::Mat m_depthMap;
+    cv::Mat m_pointCloud;
     cv::Mat m_projectionMatrix;
+
+    int m_width;
+    int m_height;
 };
 }
 
-#endif // DEPTHCAMERA_H
+#endif // INPUT_H

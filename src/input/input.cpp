@@ -1,45 +1,59 @@
-#include "depthcamera.h"
+#include "input.h"
+#include <utils/exception.h>
 
 namespace pose
 {
-DepthCamera::DepthCamera()
+Input::Input(int width, int height)
+    : m_width(width),
+      m_height(height)
 {
+    m_depthMap = cv::Mat(m_height, m_width, CV_32F);
+    m_pointCloud = cv::Mat(m_height, m_width, CV_32FC3);
 }
 
-DepthCamera::~DepthCamera()
+Input::~Input()
 {
+    m_depthMap.release();
+    m_pointCloud.release();
 }
 
-void DepthCamera::waitForData()
+void Input::process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize)
 {
-    iWaitForData();
+    // check data sizes
+    if (depthDataSize != m_depthMap.cols * m_depthMap.rows * m_depthMap.elemSize() ||
+        pointsDataSize != m_pointCloud.cols * m_pointCloud.rows * m_pointCloud.elemSize())
+        throw Exception("invalid input data size(s)");
+
+    // copy data
+    memcpy(depthData, m_depthMap.data, depthDataSize);
+    memcpy(pointsData, m_pointCloud.data, pointsDataSize);
 
     // compute projection matrix
     if (!m_pointCloud.empty() && m_projectionMatrix.empty())
         m_projectionMatrix = computeProjectionMatrix(m_pointCloud);
 }
 
-const bool DepthCamera::ready() const
+const bool Input::ready() const
 {
     return !m_depthMap.empty() && !m_pointCloud.empty() && !m_projectionMatrix.empty();
 }
 
-const cv::Mat& DepthCamera::getDepthMap() const
+const cv::Mat& Input::getDepthMap() const
 {
     return m_depthMap;
 }
 
-const cv::Mat& DepthCamera::getPointCloud() const
+const cv::Mat& Input::getPointCloud() const
 {
     return m_pointCloud;
 }
 
-const cv::Mat& DepthCamera::getProjectionMatrix() const
+const cv::Mat& Input::getProjectionMatrix() const
 {
     return m_projectionMatrix;
 }
 
-cv::Mat DepthCamera::computeProjectionMatrix(const cv::Mat& pointCloud) const
+cv::Mat Input::computeProjectionMatrix(const cv::Mat& pointCloud) const
 {
     if (pointCloud.empty() || pointCloud.type() != CV_32FC3)
         return cv::Mat();

@@ -19,18 +19,50 @@ extern "C"{
   #endif
 #endif
 
-enum PoseResultCode
+typedef enum
 {
-    POSE_SUCCESS = 0,
-    POSE_FAIL
+    RESULT_SUCCESS = 0,
+    RESULT_OUTOFMEMORY = -1,
+    RESULT_INVALIDCONTEXT = -2,
+    RESULT_INVALIDPARAMETERS = -3,
+    RESULT_INTERNALERROR = -4,
+    RESULT_UNHANDLEDEXCEPTION = -5
+} PoseResult;
+
+typedef enum
+{
+    IMAGE_DEPTH,
+    IMAGE_POINTS,
+    IMAGE_USERSEGMENTATION
+} PoseImageType;
+
+struct _PoseContext;
+typedef struct _PoseContext PoseContext;
+
+struct _PoseSkeleton
+{
+    int id;
 };
+typedef struct _PoseSkeleton PoseSkeleton;
 
-struct _IPoseContext;
-typedef struct _IPoseContext IPoseContext;
+struct _PoseScene
+{
+    PoseSkeleton* skeletons;
+    int numSkeletons;
+};
+typedef struct _PoseScene PoseScene;
 
-POSEAPI int PoseInit(IPoseContext** context);
+POSEAPI PoseResult poseInit(PoseContext** context, int width, int height);
 
-POSEAPI int PoseShutdown(IPoseContext* context);
+POSEAPI PoseResult poseShutdown(PoseContext* context);
+
+POSEAPI PoseResult poseSetInput(PoseContext* context, float* depthData, int depthDataSize, float* pointsData, int pointsDataSize);
+
+POSEAPI PoseResult poseGetScene(PoseContext* context, PoseScene** scene);
+
+POSEAPI PoseResult poseFreeScene(PoseScene* scene);
+
+POSEAPI PoseResult poseGetImage(PoseContext* context, PoseImageType type, int* width, int* height, int* size, void* data); // UNDONE
 
 #ifdef __cplusplus
 }
