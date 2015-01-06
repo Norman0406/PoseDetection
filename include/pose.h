@@ -19,6 +19,19 @@ extern "C"{
   #endif
 #endif
 
+typedef struct
+{
+    float x;
+    float y;
+    float z;
+} PoseVector3;
+
+typedef struct
+{
+    float x;
+    float y;
+} PoseVector2;
+
 typedef enum
 {
     RESULT_SUCCESS = 0,
@@ -36,8 +49,35 @@ typedef enum
     IMAGE_USERSEGMENTATION
 } PoseImageType;
 
+typedef enum
+{
+    JT_HEAD = 0,
+    JT_NECK,
+    JT_LEFTSHOULDER,
+    JT_LEFTELBOW,
+    JT_LEFTHAND,
+    JT_RIGHTSHOULDER,
+    JT_RIGHTELBOW,
+    JT_RIGHTHAND,
+    JT_TORSO,
+    JT_HIPS,
+    JT_LEFTHIP,
+    JT_LEFTKNEE,
+    JT_LEFTFOOT,
+    JT_RIGHTHIP,
+    JT_RIGHTKNEE,
+    JT_RIGHTFOOT
+} PoseJointType;
+
 struct _PoseContext;
 typedef struct _PoseContext PoseContext;
+
+struct _PoseJoint
+{
+    PoseJointType jointType;
+    PoseVector3 position3d;
+    PoseVector2 position2d;
+};
 
 struct _PoseSkeleton
 {

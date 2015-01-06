@@ -13,7 +13,7 @@ class Joint
 public:
     enum JointType
     {
-        JT_HEAD,
+        JT_HEAD = 0,
         JT_NECK,
         JT_LEFTSHOULDER,
         JT_LEFTELBOW,
