@@ -15,7 +15,7 @@ public:
     Algorithm(int width, int height);
     ~Algorithm();
 
-    void process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize);
+    bool process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize);
 
 private:
     Input* m_input;

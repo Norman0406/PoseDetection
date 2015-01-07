@@ -48,7 +48,8 @@ POSEAPI PoseResult poseSetInput(PoseContext* context, float* depthData, int dept
         return RESULT_INVALIDPARAMETERS;
 
     try {
-        ((pose::Algorithm*)(context->algorithm))->process(depthData, depthDataSize, pointsData, pointsDataSize);
+        if (!((pose::Algorithm*)(context->algorithm))->process(depthData, depthDataSize, pointsData, pointsDataSize))
+            return RESULT_FINISHED;
     }
     catch (const pose::Exception& exception) {
         printf("Exception: %s", exception.what());
