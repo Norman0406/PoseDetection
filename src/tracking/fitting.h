@@ -22,7 +22,7 @@ public:
 
 private:
     void create(const cv::Mat& depthMap, const cv::Mat& labelMap);
-    void update(const cv::Mat& depthMap, const cv::Mat& labelMap);
+    void update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv::Mat& projectionMatrix);
     void draw(const cv::Mat& depthMap, const cv::Mat& pointCloud);
     void drawJoint(const std::shared_ptr<Joint>& joint, cv::Mat& dispImg);
 

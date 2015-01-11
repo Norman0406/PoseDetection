@@ -2,6 +2,7 @@
 #define JOINT_H
 
 #include <opencv2/opencv.hpp>
+#include <Eigen/Geometry>
 #include <memory>
 
 namespace pose
@@ -45,6 +46,8 @@ public:
     void setConfidence(float confidence);
 
     const Joint* getJoint(JointType type) const;
+
+    void update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix);
 
 private:
     JointType m_type;

@@ -253,4 +253,229 @@ float Utils::distance(const BoundingBox3D& box1, const BoundingBox3D& box2, floa
     //float dist4 = distancePrio4(box1, box2);
     return std::min(dist1, std::min(dist2, dist3));
 }
+
+/*void Utils::matrix2Quat(const double* rot, double* quat)
+{
+    // convert rotation matrix to quaternion (adapted from OgreQuaternion.cpp)
+
+    double matrix[3][3] = {
+        {rot[0], rot[1], rot[2]},
+        {rot[3], rot[4], rot[5]},
+        {rot[6], rot[7], rot[8]}
+    };
+
+    double trace = matrix[0][0] + matrix[1][1] + matrix[2][2];
+    double root;
+
+    if (trace > 0.0) {
+        root = sqrt(trace + 1.0);
+        quat[3] = 0.5 * root;
+        root = 0.5 / root;
+
+        quat[0] = (matrix[2][1] - matrix[1][2]) * root;
+        quat[1] = (matrix[0][2] - matrix[2][0]) * root;
+        quat[2] = (matrix[1][0] - matrix[0][1]) * root;
+    }
+    else {
+        static size_t next[3] = {1, 2, 0};
+        size_t i = 0;
+        if (matrix[1][1] > matrix[0][0])
+            i = 1;
+        if (matrix[2][2] > matrix[i][i])
+            i = 2;
+        size_t j = next[i];
+        size_t k = next[j];
+
+        root = sqrt(matrix[i][i] - matrix[j][j] - matrix[k][k] + 1.0);
+        double* apkQuat[3] = {&quat[0], &quat[1], &quat[2]};
+        *apkQuat[i] = 0.5 * root;
+        root = 0.5 / root;
+        quat[3] = (matrix[k][j] - matrix[j][k]) * root;
+        *apkQuat[j] = (matrix[j][i] + matrix[i][j]) * root;
+        *apkQuat[k] = (matrix[k][i] + matrix[i][k]) * root;
+    }
+}
+
+void Utils::matrix2Quat(const cv::Mat& rot, quaternion<double>& quat)
+{
+    if (rot.type() != CV_64F)
+        throw Exception("invalid type");
+
+    double q[4] = { quat.R_component_2(),
+        quat.R_component_3(),
+        quat.R_component_4(),
+        quat.R_component_1() };
+
+    matrix2Quat((double*)&rot.data[0], q);
+
+    quat = boost::math::quaternion<double>(q[3], q[0], q[1], q[2]);
+}
+
+void Utils::quat2Matrix(const double* quat, double* rot)
+{
+    // convert quaternion to rotation matrix (adapted from OgreQuaternion.cpp)
+
+    double tx = quat[0] + quat[0];
+    double ty = quat[1] + quat[1];
+    double tz = quat[2] + quat[2];
+    double twx = tx * quat[3];
+    double twy = ty * quat[3];
+    double twz = tz * quat[3];
+    double txx = tx * quat[0];
+    double txy = ty * quat[0];
+    double txz = tz * quat[0];
+    double tyy = ty * quat[1];
+    double tyz = tz * quat[1];
+    double tzz = tz * quat[2];
+
+    double matrix[3][3];
+
+    matrix[0][0] = 1.0 - (tyy + tzz);
+    matrix[0][1] = txy - twz;
+    matrix[0][2] = txz + twy;
+    matrix[1][0] = txy + twz;
+    matrix[1][1] = 1.0 - (txx + tzz);
+    matrix[1][2] = tyz - twx;
+    matrix[2][0] = txz - twy;
+    matrix[2][1] = tyz + twx;
+    matrix[2][2] = 1.0 - (txx + tyy);
+
+    rot[0] = matrix[0][0];
+    rot[1] = matrix[0][1];
+    rot[2] = matrix[0][2];
+    rot[3] = matrix[1][0];
+    rot[4] = matrix[1][1];
+    rot[5] = matrix[1][2];
+    rot[6] = matrix[2][0];
+    rot[7] = matrix[2][1];
+    rot[8] = matrix[2][2];
+}
+
+void Utils::quat2Matrix(const quaternion<double>& quat, cv::Mat& rot)
+{
+    if (!rot.empty() && rot.type() != CV_64F)
+        throw Exception("invalid type");
+    else
+        rot = cv::Mat(3, 3, CV_64FC1);
+
+    double q[4] = { quat.R_component_2(),
+        quat.R_component_3(),
+        quat.R_component_4(),
+        quat.R_component_1() };
+
+    quat2Matrix(q, (double*)&rot.data[0]);
+}
+
+void Utils::euler2Quat(quaternion<double>& quat, double angleX, double angleY, double angleZ)
+{
+    double r = DEG2RAD(angleX / 2.0);
+    double p = DEG2RAD(angleY / 2.0);
+    double y = DEG2RAD(angleZ / 2.0);
+
+    double sinp = sin(p);
+    double siny = sin(y);
+    double sinr = sin(r);
+    double cosp = cos(p);
+    double cosy = cos(y);
+    double cosr = cos(r);
+
+    quat = quaternion<double>(
+        cosr * cosp * cosy + sinr * sinp * siny,
+        sinr * cosp * cosy - cosr * sinp * siny,
+        cosr * sinp * cosy + sinr * cosp * siny,
+        cosr * cosp * siny - sinr * sinp * cosy);
+
+    // normalize
+    quat /= norm(quat);
+}
+
+void Utils::quat2Euler(const quaternion<double>& quat, double& angleX, double& angleY, double& angleZ)
+{
+    quaternion<double> myQuat = quat;
+    myQuat /= norm(myQuat);
+
+    cv::Point3d euler(0, 0, 0);
+
+    double qW = myQuat.R_component_1();
+    double qX = myQuat.R_component_2();
+    double qY = myQuat.R_component_3();
+    double qZ = myQuat.R_component_4();
+
+    double test = (qW * qY - qZ * qX);
+    double unit = qX * qX + qY * qY + qZ * qZ + qW * qW;
+
+    // handle singularities
+    if (test > 0.4999999 * unit) {
+        euler.x = 2 * atan2(qX, qW);
+        euler.y = M_PI / 2.0;
+        euler.z = 0;
+    }
+    else if (test < -0.4999999 * unit) {
+        euler.x = 2 * atan2(qX, qW);
+        euler.y = -M_PI / 2.0;
+        euler.z = 0;
+    }
+    else {
+        euler.x = atan2(2 * (qW * qX + qY * qZ), 1 - 2 * (qX * qX + qY * qY));
+        euler.y = asin(2 * test);
+        euler.z = atan2(2 * (qW * qZ + qX * qY), 1 - 2 * (qY * qY + qZ * qZ));
+    }
+
+    angleX = RAD2DEG(euler.x);
+    angleY = RAD2DEG(euler.y);
+    angleZ = RAD2DEG(euler.z);
+}
+
+void Utils::axis2Quat(quaternion<double>& quat, const cv::Point3d& axis, double angle)
+{
+    cv::Point3d myAxis = axis;
+    myAxis *= (1.0 / cv::norm(myAxis));
+
+    double halfAngle = DEG2RAD(angle / 2.0);
+    double sinAngle = sin(halfAngle);
+
+    quat = quaternion<double>(cos(halfAngle),
+        myAxis.x * sinAngle, myAxis.y * sinAngle, myAxis.z * sinAngle);
+}
+
+void Utils::quat2Axis(const quaternion<double>& quat, cv::Point3d& axis, double& angle)
+{
+    quaternion<double> myQuat = quat;
+    double qw = myQuat.R_component_1();
+
+    // normalize
+    if (qw > 1.0)
+        myQuat /= norm(myQuat);
+
+    angle = RAD2DEG(2.0 * acos(qw));
+    double s = sqrt(1.0 - qw * qw);
+
+    if (s < 0.0001) {
+        // avoid divbyzero, any arbitrary axis is valid
+        axis.x = 0;
+        axis.y = 1;
+        axis.z = 0;
+    }
+    else {
+        axis.x = myQuat.R_component_2() / s;
+        axis.y = myQuat.R_component_3() / s;
+        axis.z = myQuat.R_component_4() / s;
+    }
+}
+
+void Utils::quatRotate(const quaternion<double>& quat, cv::Point3d& point)
+{
+    quaternion<double> pointTemp(0, point.x, point.y, point.z);
+    pointTemp = conj(quat) * pointTemp * quat;
+    point = cv::Point3d(pointTemp.R_component_2(), pointTemp.R_component_3(),
+        pointTemp.R_component_4());
+}
+
+void Utils::quatRotateInv(const Eigen::Quaterniond& quat, cv::Point3d& point)
+{
+    quaternion<double> pointTemp(0, point.x, point.y, point.z);
+    pointTemp = quat * pointTemp * conj(quat);
+    point = cv::Point3d(pointTemp.R_component_2(), pointTemp.R_component_3(),
+        pointTemp.R_component_4());
+}*/
 }

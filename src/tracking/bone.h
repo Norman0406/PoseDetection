@@ -1,6 +1,7 @@
 #ifndef BONE_H
 #define BONE_H
 
+#include <opencv2/opencv.hpp>
 #include <Eigen/Geometry>
 #include <memory>
 
@@ -21,7 +22,10 @@ public:
     float getLength() const;
 
     void setOrientation(const Eigen::Quaternion<double>& orientation);
+
     void setLength(float length);
+
+    void update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix);
 
 private:
     std::shared_ptr<Joint> m_jointStart;

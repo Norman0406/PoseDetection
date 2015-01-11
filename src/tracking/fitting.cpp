@@ -20,7 +20,7 @@ void Fitting::process(const cv::Mat& depthMap,
                       const cv::Mat& projectionMatrix)
 {
     create(depthMap, labelMap);
-    update(depthMap, labelMap);
+    update(depthMap, labelMap, projectionMatrix);
     draw(depthMap, labelMap);
 }
 
@@ -50,12 +50,12 @@ void Fitting::create(const cv::Mat& depthMap, const cv::Mat& labelMap)
     }
 }
 
-void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap)
+void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv::Mat& projectionMatrix)
 {
     for (auto it = m_skeletons.begin(); it != m_skeletons.end(); it++) {
         const std::shared_ptr<Skeleton>& skeleton = it->second;
 
-        skeleton->update();
+        skeleton->update(projectionMatrix);
     }
 }
 

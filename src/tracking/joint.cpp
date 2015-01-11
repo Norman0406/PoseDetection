@@ -79,4 +79,10 @@ const Joint* Joint::getJoint(JointType type) const
     // not found
     return 0;
 }
+
+void Joint::update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix)
+{
+    for (size_t i = 0; i < m_bones.size(); i++)
+        m_bones[i]->update(globalQuat, projectionMatrix);
+}
 }

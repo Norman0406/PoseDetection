@@ -13,7 +13,8 @@ public:
 
     virtual void setDefaultPose() = 0;
 
-    void update();
+    void setPosition(const cv::Point3f& position);
+    void update(const cv::Mat& projectionMatrix);
 
     unsigned int getLabel() const;
     const std::shared_ptr<Joint>& getRootJoint() const;
@@ -22,6 +23,7 @@ public:
 private:
     std::shared_ptr<Joint> m_rootJoint;
     unsigned int m_label;
+    cv::Point3f m_position;
 };
 }
 
