@@ -53,7 +53,8 @@ win32 {
 
     INCLUDEPATH += $$(OPENCV_DIR_2_4_9)/build/include \
         $$(EIGEN_DIR_3) \
-        $$(BOOST_DIR_1_56)
+        $$(BOOST_DIR_1_56) \
+        $$(FLANN_DIR_1_8_4)/include
 
     CONFIG(debug, debug|release) {
         BUILDDIR = debug
@@ -62,7 +63,8 @@ win32 {
         LIBS += -L$$(BOOST_DIR_1_56)\stage\lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_core249d.lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_imgproc249d.lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249d.lib
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249d.lib \
+            $$(FLANN_DIR_1_8_4)\lib\Debug\flann_cpp_s.lib
 
         OTHER_FILES += $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_core249d.dll \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_imgproc249d.dll \
@@ -75,7 +77,8 @@ win32 {
         LIBS += -L$$(BOOST_DIR_1_56)\stage\lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_core249.lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_imgproc249.lib \
-            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249.lib
+            $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249.lib \
+            $$(FLANN_DIR_1_8_4)\lib\Release\flann_cpp_s.lib
 
         OTHER_FILES += $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_core249.dll \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\bin\opencv_imgproc249.dll \
