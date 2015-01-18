@@ -17,11 +17,10 @@ void Utils::getColoredLabelMap(const cv::Mat& labelMap, cv::Mat& coloredLabelMap
             const unsigned int& label = labelMap.at<unsigned int>(cv::Point(i, j));
 
             if (label > 0) {
-                srand(label);
-                cv::Vec3b col((uchar)((rand() / (float)RAND_MAX) * 255),
-                              (uchar)((rand() / (float)RAND_MAX) * 255),
-                              (uchar)((rand() / (float)RAND_MAX) * 255));
-                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j)) = col;
+                cv::Scalar color = getLabelColor(label);
+                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[0] = (uchar)color[2];
+                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[1] = (uchar)color[1];
+                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[2] = (uchar)color[0];
             }
         }
     }
@@ -35,6 +34,14 @@ cv::Mat Utils::getColoredLabelMap(const cv::Mat& labelMap)
     getColoredLabelMap(labelMap, coloredLabelMap);
 
     return coloredLabelMap;
+}
+
+cv::Scalar Utils::getLabelColor(unsigned int label)
+{
+    srand(label);
+    return cv::Scalar((uchar)((rand() / (float)RAND_MAX) * 255),
+                     (uchar)((rand() / (float)RAND_MAX) * 255),
+                     (uchar)((rand() / (float)RAND_MAX) * 255));
 }
 
 bool Utils::loadCvMat(const char* filename, cv::Mat& image)
@@ -252,6 +259,20 @@ float Utils::distance(const BoundingBox3D& box1, const BoundingBox3D& box2, floa
 
     //float dist4 = distancePrio4(box1, box2);
     return std::min(dist1, std::min(dist2, dist3));
+}
+
+cv::Point2f Utils::projectPoint(const cv::Point3f& point, const cv::Mat& projectionMatrix)
+{
+    cv::Mat pointMat(4, 1, CV_32F);
+    pointMat.ptr<float>(0)[0] = point.x;
+    pointMat.ptr<float>(0)[1] = point.y;
+    pointMat.ptr<float>(0)[2] = point.z;
+    pointMat.ptr<float>(0)[3] = 1;
+
+    // compute image position
+    cv::Mat pointImgMat = projectionMatrix * pointMat;
+    return cv::Point2f(pointImgMat.ptr<float>(0)[0] / pointImgMat.ptr<float>(0)[2],
+            pointImgMat.ptr<float>(0)[1] / pointImgMat.ptr<float>(0)[2]);
 }
 
 /*void Utils::matrix2Quat(const double* rot, double* quat)

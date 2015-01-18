@@ -1,4 +1,5 @@
 #include "skeleton.h"
+#include <utils/utils.h>
 
 namespace pose
 {
@@ -32,15 +33,7 @@ void Skeleton::setPosition(const cv::Point3f& position)
 void Skeleton::update(const cv::Mat& projectionMatrix)
 {
     // compute image position
-    cv::Mat point(4, 1, CV_32F);
-    point.ptr<float>(0)[0] = m_position.x;
-    point.ptr<float>(0)[1] = m_position.y;
-    point.ptr<float>(0)[2] = m_position.z;
-    point.ptr<float>(0)[3] = 1;
-
-    cv::Mat pointImgMat = projectionMatrix * point;
-    cv::Point2f pointImg(pointImgMat.ptr<float>(0)[0] / pointImgMat.ptr<float>(0)[2],
-            pointImgMat.ptr<float>(0)[1] / pointImgMat.ptr<float>(0)[2]);
+    cv::Point2f pointImg = Utils::projectPoint(m_position, projectionMatrix);
     m_rootJoint->setPosition(m_position, pointImg);
 
     // update skeleton hierarchy

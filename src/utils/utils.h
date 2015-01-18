@@ -18,9 +18,11 @@ class Utils
 public:
     static void getColoredLabelMap(const cv::Mat&, cv::Mat&);
     static cv::Mat getColoredLabelMap(const cv::Mat&);
+    static cv::Scalar getLabelColor(unsigned int label);
     static bool loadCvMat(const char* filename, cv::Mat& image);
     static bool saveCvMat(const char* filename, const cv::Mat& image);
     static float distance(const BoundingBox3D& box1, const BoundingBox3D& box2, float searchRadius);
+    static cv::Point2f projectPoint(const cv::Point3f& point, const cv::Mat& projectionMatrix);
 
     /*static void matrix2Quat(const double* rot, double* quat);
     static void matrix2Quat(const Eigen::Matrix& rot, Eigen::Quaterniond& quat);

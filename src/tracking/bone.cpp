@@ -1,5 +1,6 @@
 #include "bone.h"
 #include "joint.h"
+#include <utils/utils.h>
 
 namespace pose
 {
@@ -52,16 +53,8 @@ void Bone::update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectio
     cv::Point3f newPosition = m_jointStart->getPosition3d() +
             cv::Point3f((float)result.x(), (float)result.y(), (float)result.z());
 
-    cv::Mat point(4, 1, CV_32F);
-    point.ptr<float>(0)[0] = newPosition.x;
-    point.ptr<float>(0)[1] = newPosition.y;
-    point.ptr<float>(0)[2] = newPosition.z;
-    point.ptr<float>(0)[3] = 1;
-
     // compute image position
-    cv::Mat pointImgMat = projectionMatrix * point;
-    cv::Point2f pointImg(pointImgMat.ptr<float>(0)[0] / pointImgMat.ptr<float>(0)[2],
-            pointImgMat.ptr<float>(0)[1] / pointImgMat.ptr<float>(0)[2]);
+    cv::Point2f pointImg = Utils::projectPoint(newPosition, projectionMatrix);
     m_jointEnd->setPosition(newPosition, pointImg);
 
     // then update target joint

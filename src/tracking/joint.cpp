@@ -7,7 +7,7 @@ Joint::Joint(Joint::JointType type)
     : m_type(type),
       m_position3d(0, 0, 0),
       m_position2d(0, 0),
-      m_confidence(0)
+      m_confidence(1)
 {
 }
 
