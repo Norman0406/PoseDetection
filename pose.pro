@@ -11,6 +11,8 @@ SOURCES += src/pose.cc \
     src/tracking/bone.cpp \
     src/tracking/joint.cpp \
     src/tracking/fitting.cpp \
+    src/tracking/fittingmethod.cpp \
+    src/tracking/fittingmethodpso.cpp \
     src/tracking/skeleton.cpp \
     src/tracking/skeletonupperbody.cpp \
     src/utils/utils.cpp \
@@ -33,6 +35,8 @@ HEADERS += include/pose.h \
     src/tracking/bone.h \
     src/tracking/joint.h \
     src/tracking/fitting.h \
+    src/tracking/fittingmethod.h \
+    src/tracking/fittingmethodpso.h \
     src/tracking/skeleton.h \
     src/tracking/skeletonupperbody.h \
     src/utils/utils.h \

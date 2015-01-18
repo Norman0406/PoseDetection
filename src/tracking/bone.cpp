@@ -4,11 +4,12 @@
 
 namespace pose
 {
-Bone::Bone(std::shared_ptr<Joint> jointStart, std::shared_ptr<Joint> jointEnd, float length)
+Bone::Bone(std::shared_ptr<Joint> jointStart, std::shared_ptr<Joint> jointEnd, float length, bool isFixed)
     : m_jointStart(jointStart),
       m_jointEnd(jointEnd),
       m_orientation(Eigen::Quaterniond::Identity()),
-      m_length(length)
+      m_length(length),
+      m_isFixed(isFixed)
 {
 }
 
@@ -30,6 +31,11 @@ const Eigen::Quaternion<double> Bone::getOrientation() const
 float Bone::getLength() const
 {
     return m_length;
+}
+
+bool Bone::isFixed() const
+{
+    return m_isFixed;
 }
 
 void Bone::setOrientation(const Eigen::Quaternion<double>& orientation)

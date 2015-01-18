@@ -2,17 +2,21 @@
 #include "skeletonupperbody.h"
 #include "joint.h"
 #include "bone.h"
+#include "fittingmethodpso.h"
 #include <utils/utils.h>
 
 namespace pose
 {
 Fitting::Fitting()
+    : m_method(0)
 {
+    m_method = new FittingMethodPSO();
 }
 
 Fitting::~Fitting()
 {
     m_skeletons.clear();
+    delete m_method;
 }
 
 void Fitting::process(const cv::Mat& depthMap,
@@ -104,15 +108,9 @@ void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv:
             cv::Point3f centerOfMass(m100 / m000, m010 / m000, m001 / m000);
 
             // run skeleton fitting
-            runFitting(userDepthMap, userPointCloud, skeleton, centerOfMass, projectionMatrix);
+            m_method->process(userDepthMap, userPointCloud, skeleton, centerOfMass, projectionMatrix);
         }
     }
-}
-
-void Fitting::runFitting(const cv::Mat& depthMap, const cv::Mat& pointCloud, std::shared_ptr<Skeleton> skeleton, cv::Point3f centerOfMass, const cv::Mat& projectionMatrix)
-{
-    skeleton->setPosition(centerOfMass);
-    skeleton->update(projectionMatrix);
 }
 
 void Fitting::draw(const cv::Mat& depthMap, const cv::Mat& labelMap)
