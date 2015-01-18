@@ -2,6 +2,11 @@
 #define FITTINGMETHOD_H
 
 #include <memory>
+
+#pragma warning(disable: 4996)
+#include <flann/flann.hpp>
+#pragma warning(default: 4996)
+
 #include "skeleton.h"
 
 namespace pose
@@ -9,12 +14,12 @@ namespace pose
 class FittingMethod
 {
 public:
-    ~FittingMethod();
+    virtual ~FittingMethod();
 
     void process(const cv::Mat& depthMap,
                  const cv::Mat& pointCloud,
+                 const flann::Matrix<float>& flannDataset,
                  std::shared_ptr<Skeleton> skeleton,
-                 cv::Point3f centerOfMass,
                  const cv::Mat& projectionMatrix);
 
 protected:
@@ -23,8 +28,20 @@ protected:
     virtual void iProcess(const cv::Mat& depthMap,
                           const cv::Mat& pointCloud,
                           std::shared_ptr<Skeleton> skeleton,
-                          cv::Point3f centerOfMass,
                           const cv::Mat& projectionMatrix) = 0;
+
+    cv::Point3f nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+
+private:
+    cv::Point3f nearestPointFlann(const cv::Point3f& point);
+    cv::Point3f nearestPointUnderneath(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+    cv::Point3f nearestPoint8Conn(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+
+    bool m_updateFlannIndex;
+    const flann::Matrix<float>* m_flannDataset;
+    flann::IndexParams m_flannIndexParams;
+    flann::SearchParams m_flannSearchParams;
+    flann::Index<flann::L2<float>>* m_flannIndex;
 };
 }
 

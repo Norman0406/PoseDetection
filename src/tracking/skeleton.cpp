@@ -6,7 +6,8 @@ namespace pose
 Skeleton::Skeleton(unsigned int label, std::shared_ptr<Joint> rootJoint)
     : m_label(label),
       m_rootJoint(rootJoint),
-      m_position(0, 0, 2)
+      m_position(0, 0, 0),
+      m_isInitialized(false)
 {
 }
 
@@ -30,6 +31,16 @@ void Skeleton::setPosition(const cv::Point3f& position)
     m_position = position;
 }
 
+const cv::Point3f& Skeleton::getPosition() const
+{
+    return m_position;
+}
+
+bool Skeleton::isInitialized() const
+{
+    return m_isInitialized;
+}
+
 void Skeleton::update(const cv::Mat& projectionMatrix)
 {
     // compute image position
@@ -38,5 +49,7 @@ void Skeleton::update(const cv::Mat& projectionMatrix)
 
     // update skeleton hierarchy
     m_rootJoint->update(Eigen::Quaterniond::Identity(), projectionMatrix);
+
+    m_isInitialized = true;
 }
 }

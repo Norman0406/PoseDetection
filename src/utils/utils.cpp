@@ -18,9 +18,9 @@ void Utils::getColoredLabelMap(const cv::Mat& labelMap, cv::Mat& coloredLabelMap
 
             if (label > 0) {
                 cv::Scalar color = getLabelColor(label);
-                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[0] = (uchar)color[2];
+                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[0] = (uchar)color[0];
                 coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[1] = (uchar)color[1];
-                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[2] = (uchar)color[0];
+                coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[2] = (uchar)color[2];
             }
         }
     }

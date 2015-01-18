@@ -8,7 +8,8 @@
 namespace pose
 {
 Fitting::Fitting()
-    : m_method(0)
+    : m_method(0),
+      m_flannData(0)
 {
     m_method = new FittingMethodPSO();
 }
@@ -17,6 +18,7 @@ Fitting::~Fitting()
 {
     m_skeletons.clear();
     delete m_method;
+    delete[] m_flannData;
 }
 
 void Fitting::process(const cv::Mat& depthMap,
@@ -66,6 +68,10 @@ void Fitting::create(const cv::Mat& labelMap)
 
 void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
 {
+    // create a buffer that will hold the flann point cloud data
+    if (!m_flannData)
+        m_flannData = new float[pointCloud.cols * pointCloud.rows * 3];
+
     for (auto it = m_skeletons.begin(); it != m_skeletons.end(); it++) {
         // NOTE: this loop might be parallelized
 
@@ -77,7 +83,13 @@ void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv:
         userDepthMap.setTo(0);
         userPointCloud.setTo(0);
 
+        // only compute the center of mass and update the skeleton position if the skeleton
+        // is new and has not yet been initialized
+        bool updatePosition = !skeleton->isInitialized();
+
         float m100 = 0, m010 = 0, m001 = 0, m000 = 0;
+
+        int flannDataIndex = 0;
 
         // create an image that contains only pixels for the selected skeleton
         for (int i = 0; i < depthMap.rows; i++) {
@@ -92,23 +104,35 @@ void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv:
                     const float& depthValue = depthRow[j];
                     const cv::Vec3f& pointsValue = pointsRow[j];
 
-                    userDepthRow[j] = depthValue;
-                    userPointsRow[j] = depthValue;
+                    // update flann point cloud data
+                    memcpy(&m_flannData[flannDataIndex * 3], &pointsValue[0], sizeof(float) * 3);
+                    flannDataIndex++;
 
-                    // compute moments
-                    m100 += pointsValue[0];
-                    m010 += pointsValue[1];
-                    m001 += pointsValue[2];
-                    m000 += 1;
+                    userDepthRow[j] = depthValue;
+                    userPointsRow[j] = pointsValue;
+
+                    if (updatePosition) {
+                        // compute moments
+                        m100 += pointsValue[0];
+                        m010 += pointsValue[1];
+                        m001 += pointsValue[2];
+                        m000 += 1;
+                    }
                 }
             }
         }
 
-        if (m000 > 0) {
-            cv::Point3f centerOfMass(m100 / m000, m010 / m000, m001 / m000);
+        // initialize the skeleton position to the center of mass and perform the initial update
+        if (m000 > 0 && updatePosition) {
+            skeleton->setPosition(cv::Point3f(m100 / m000, m010 / m000, m001 / m000));
+            skeleton->update(projectionMatrix);
+        }
 
-            // run skeleton fitting
-            m_method->process(userDepthMap, userPointCloud, skeleton, centerOfMass, projectionMatrix);
+        // run skeleton fitting
+        if (skeleton->isInitialized()) {
+            // create a dataset that contains only valid points that belong to the user
+            flann::Matrix<float> flannDataset(m_flannData, flannDataIndex, 3);
+            m_method->process(userDepthMap, userPointCloud, flannDataset, skeleton, projectionMatrix);
         }
     }
 }
@@ -140,7 +164,7 @@ void Fitting::draw(const cv::Mat& depthMap, const cv::Mat& labelMap)
         const std::shared_ptr<Skeleton>& skeleton = it->second;
         drawJoint(skeleton->getRootJoint(), dispImg);
         cv::circle(dispImg, skeleton->getRootJoint()->getPosition2d(), 4, Utils::getLabelColor(skeleton->getLabel()), -1);
-    }    
+    }
 
     cv::imshow("Skeleton", dispImg);
 }

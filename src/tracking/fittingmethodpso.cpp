@@ -28,9 +28,17 @@ FittingMethodPSO::~FittingMethodPSO()
 void FittingMethodPSO::iProcess(const cv::Mat& depthMap,
                                 const cv::Mat& pointCloud,
                                 std::shared_ptr<Skeleton> skeleton,
-                                cv::Point3f centerOfMass,
                                 const cv::Mat& projectionMatrix)
 {
+    // just temporary
+    const cv::Point3f& pos = skeleton->getRootJoint()->getPosition3d();
+    cv::Point3f nearest = nearestPoint(pos, pointCloud, projectionMatrix);
+
+    if (nearest.z > 0) {
+        skeleton->setPosition(nearest);
+        skeleton->update(projectionMatrix);
+    }
+
     // TODO: define the function and the actual parameters that are to be optimized.
     // The optimization is run for the 3d root joint position and every subsequent
     // bone that is not fixed. The energy is computed from the current bone to the

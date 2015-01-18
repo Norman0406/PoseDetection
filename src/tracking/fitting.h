@@ -4,6 +4,10 @@
 #include <opencv2/opencv.hpp>
 #include <memory>
 
+#pragma warning(disable: 4996)
+#include <flann/flann.hpp>
+#pragma warning(default: 4996)
+
 namespace pose
 {
 class Skeleton;
@@ -31,6 +35,9 @@ private:
     std::map<unsigned int, cv::Mat> m_skeletonMasks;
 
     FittingMethod* m_method;
+
+    float* m_flannData;
+    flann::Matrix<float> m_flannDataset;
 };
 }
 

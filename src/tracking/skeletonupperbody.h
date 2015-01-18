@@ -15,8 +15,6 @@ public:
 
 private:
     static std::shared_ptr<Joint> create();
-
-
 };
 }
 
