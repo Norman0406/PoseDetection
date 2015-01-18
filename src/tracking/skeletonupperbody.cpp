@@ -24,34 +24,34 @@ std::shared_ptr<Joint> SkeletonUpperBody::create()
     std::shared_ptr<Joint> rightHand(new Joint(Joint::JT_RIGHTHAND));
 
     // create bones
-    std::shared_ptr<Bone> torsoNeck(new Bone(torso, neck, 0.35f));
+    std::shared_ptr<Bone> torsoNeck(new Bone(torso, neck, 0.23f));
     torsoNeck->setOrientation(Eigen::Quaterniond(Eigen::AngleAxisd(0, Eigen::Vector3d(0, 0, 1))));
     torso->addBone(torsoNeck);
 
-    std::shared_ptr<Bone> neckHead(new Bone(neck, head, 0.27f));
+    std::shared_ptr<Bone> neckHead(new Bone(neck, head, 0.21f));
     neckHead->setOrientation(Eigen::Quaterniond(Eigen::AngleAxisd(0, Eigen::Vector3d(0, 0, 1))));
     neck->addBone(neckHead);
 
-    std::shared_ptr<Bone> neckLeftShoulder(new Bone(neck, leftShoulder, 0.17f));
+    std::shared_ptr<Bone> neckLeftShoulder(new Bone(neck, leftShoulder, 0.19f));
     neckLeftShoulder->setOrientation(Eigen::Quaterniond(Eigen::AngleAxisd(DEG2RAD(-90), Eigen::Vector3d(0, 0, 1))));
     neck->addBone(neckLeftShoulder);
 
-    std::shared_ptr<Bone> leftShoulderLeftElbow(new Bone(leftShoulder, leftElbow, 0.27f));
+    std::shared_ptr<Bone> leftShoulderLeftElbow(new Bone(leftShoulder, leftElbow, 0.36f));
     leftShoulderLeftElbow->setOrientation(Eigen::Quaterniond(Eigen::AngleAxisd(DEG2RAD(-90), Eigen::Vector3d(0, 0, 1))));
     leftShoulder->addBone(leftShoulderLeftElbow);
 
-    std::shared_ptr<Bone> leftElbowLeftHand(new Bone(leftElbow, leftHand, 0.35f));
+    std::shared_ptr<Bone> leftElbowLeftHand(new Bone(leftElbow, leftHand, 0.36f));
     leftElbow->addBone(leftElbowLeftHand);
 
-    std::shared_ptr<Bone> neckRightShoulder(new Bone(neck, rightShoulder, 0.17f));
+    std::shared_ptr<Bone> neckRightShoulder(new Bone(neck, rightShoulder, 0.19f));
     neckRightShoulder->setOrientation(Eigen::Quaterniond(Eigen::AngleAxisd(DEG2RAD(90), Eigen::Vector3d(0, 0, 1))));
     neck->addBone(neckRightShoulder);
 
-    std::shared_ptr<Bone> rightShoulderRightElbow(new Bone(rightShoulder, rightElbow, 0.27f));
+    std::shared_ptr<Bone> rightShoulderRightElbow(new Bone(rightShoulder, rightElbow, 0.36f));
     rightShoulderRightElbow->setOrientation(Eigen::Quaterniond(Eigen::AngleAxisd(DEG2RAD(90), Eigen::Vector3d(0, 0, 1))));
     rightShoulder->addBone(rightShoulderRightElbow);
 
-    std::shared_ptr<Bone> rightElbowRightHand(new Bone(rightElbow, rightHand, 0.35f));
+    std::shared_ptr<Bone> rightElbowRightHand(new Bone(rightElbow, rightHand, 0.36f));
     rightElbow->addBone(rightElbowRightHand);
 
     return torso;
