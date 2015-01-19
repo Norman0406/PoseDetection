@@ -1,4 +1,5 @@
 #include "fittingmethod.h"
+#include "bone.h"
 #include <utils/utils.h>
 
 namespace pose
@@ -29,31 +30,45 @@ void FittingMethod::process(const cv::Mat& depthMap,
     iProcess(depthMap, pointCloud, skeleton, projectionMatrix);
 }
 
-cv::Point3f FittingMethod::nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
+void FittingMethod::updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
 {
-    cv::Point3f nearestPoint(0, 0, -1);
+    skeleton->update(projectionMatrix);
 
-    // try a simple approximation first, then proceed to the more expensive flann
-    nearestPoint = nearestPoint8Conn(point, pointCloud, projectionMatrix);
-    if (nearestPoint.z <= 0)
-        nearestPoint = nearestPointFlann(point);
-
-    return nearestPoint;
+    // TODO: update skeleton energy
 }
 
-cv::Point3f FittingMethod::nearestPointUnderneath(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
+float FittingMethod::skeletonDistance(std::shared_ptr<Bone> bone)
+{
+    // TODO: get energy for the bone
+
+    return 0;
+}
+
+bool FittingMethod::nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr)
+{
+    // try a simple approximation first, then proceed to the more expensive flann
+    if (!nearestPoint8Conn(point, pointCloud, projectionMatrix, nearest, distSqr))
+        return nearestPointFlann(point, nearest, distSqr);
+    return true;
+}
+
+bool FittingMethod::nearestPointUnderneath(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr)
 {
     cv::Point2f pointImg = Utils::projectPoint(point, projectionMatrix);
 
     // range check
     if (pointImg.x < 0 || pointImg.x >= pointCloud.cols ||
         pointImg.y < 0 || pointImg.y >= pointCloud.rows)
-        return cv::Point3f(0, 0, -1);
+        return false;
 
-    return pointCloud.ptr<cv::Point3f>((int)pointImg.y)[(int)pointImg.x];
+    nearest = pointCloud.ptr<cv::Point3f>((int)pointImg.y)[(int)pointImg.x];
+    distSqr = (point.x - nearest.x) * (point.x - nearest.x) +
+            (point.y - nearest.y) * (point.y - nearest.y) +
+            (point.z - nearest.z) * (point.z - nearest.z);
+    return true;
 }
 
-cv::Point3f FittingMethod::nearestPoint8Conn(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
+bool FittingMethod::nearestPoint8Conn(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr)
 {
     cv::Point2f pointImg = Utils::projectPoint(point, projectionMatrix);
 
@@ -72,26 +87,33 @@ cv::Point3f FittingMethod::nearestPoint8Conn(const cv::Point3f& point, const cv:
 
             cv::Point3f curPoint = pointCloud.ptr<cv::Point3f>(jInd)[iInd];
 
+            if (curPoint.z <= 0)
+                continue;
+
+            float dSqr = (point.x - curPoint.x) * (point.x - curPoint.x) +
+                    (point.y - curPoint.y) * (point.y - curPoint.y) +
+                    (point.z - curPoint.z) * (point.z - curPoint.z);
+
             if (nearestDist < 0) {
                 nearestPoint = curPoint;
-                nearestDist = (float)cv::norm(curPoint - point);
+                nearestDist = dSqr;
             }
-            else {
-                float dist = (float)cv::norm(curPoint - point);
-                if (dist < nearestDist) {
-                    nearestPoint = curPoint;
-                    nearestDist = dist;
-                }
+            else if (dSqr < nearestDist) {
+                nearestPoint = curPoint;
+                nearestDist = dSqr;
             }
         }
     }
 
-    if (nearestDist >= 0)
-        return nearestPoint;
-    return cv::Point3f(0, 0, -1);
+    if (nearestDist < 0)
+        return false;
+
+    nearest = nearestPoint;
+    distSqr = nearestDist;
+    return true;
 }
 
-cv::Point3f FittingMethod::nearestPointFlann(const cv::Point3f& point)
+bool FittingMethod::nearestPointFlann(const cv::Point3f& point, cv::Point3f& nearest, float& distSqr)
 {
     // build the index on the first call
     if (m_updateFlannIndex) {
@@ -115,15 +137,14 @@ cv::Point3f FittingMethod::nearestPointFlann(const cv::Point3f& point)
     // perform knn search
     int numPoints = m_flannIndex->knnSearch(flann::Matrix<float>(&queryPoint[0], 1, 3), indices, dists, k, m_flannSearchParams);
 
-    cv::Point3f nearestPoint(0, 0, -1);
+    if (numPoints == 0)
+        return false;
 
-    if (numPoints > 0) {
-        float* data = m_flannIndex->getPoint(pointsIdx[0]);
-        nearestPoint.x = data[0];
-        nearestPoint.y = data[1];
-        nearestPoint.z = data[2];
-    }
-
-    return nearestPoint;
+    float* data = m_flannIndex->getPoint(pointsIdx[0]);
+    nearest.x = data[0];
+    nearest.y = data[1];
+    nearest.z = data[2];
+    distSqr = nearestDists[0];
+    return true;
 }
 }

@@ -7,7 +7,8 @@ Skeleton::Skeleton(unsigned int label, std::shared_ptr<Joint> rootJoint)
     : m_label(label),
       m_rootJoint(rootJoint),
       m_position(0, 0, 0),
-      m_isInitialized(false)
+      m_isInitialized(false),
+      m_energy(std::numeric_limits<float>::infinity())
 {
 }
 
@@ -39,6 +40,11 @@ const cv::Point3f& Skeleton::getPosition() const
 bool Skeleton::isInitialized() const
 {
     return m_isInitialized;
+}
+
+float Skeleton::getEnergy() const
+{
+    return m_energy;
 }
 
 void Skeleton::update(const cv::Mat& projectionMatrix)

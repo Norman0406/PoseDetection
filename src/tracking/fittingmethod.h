@@ -11,6 +11,8 @@
 
 namespace pose
 {
+class Bone;
+
 class FittingMethod
 {
 public:
@@ -30,12 +32,15 @@ protected:
                           std::shared_ptr<Skeleton> skeleton,
                           const cv::Mat& projectionMatrix) = 0;
 
-    cv::Point3f nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+    void updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+    float skeletonDistance(std::shared_ptr<Bone> bone);
+
+    bool nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr);
 
 private:
-    cv::Point3f nearestPointFlann(const cv::Point3f& point);
-    cv::Point3f nearestPointUnderneath(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
-    cv::Point3f nearestPoint8Conn(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+    bool nearestPointFlann(const cv::Point3f& point, cv::Point3f& nearest, float& distSqr);
+    bool nearestPointUnderneath(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr);
+    bool nearestPoint8Conn(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr);
 
     bool m_updateFlannIndex;
     const flann::Matrix<float>* m_flannDataset;

@@ -32,11 +32,12 @@ void FittingMethodPSO::iProcess(const cv::Mat& depthMap,
 {
     // just temporary
     const cv::Point3f& pos = skeleton->getRootJoint()->getPosition3d();
-    cv::Point3f nearest = nearestPoint(pos, pointCloud, projectionMatrix);
 
-    if (nearest.z > 0) {
+    cv::Point3f nearest(0, 0, 0);
+    float dist = 0;
+    if (nearestPoint(pos, pointCloud, projectionMatrix, nearest, dist)) {
         skeleton->setPosition(nearest);
-        skeleton->update(projectionMatrix);
+        updateSkeleton(skeleton, pointCloud, projectionMatrix);
     }
 
     return;
