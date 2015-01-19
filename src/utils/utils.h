@@ -18,7 +18,7 @@ class Utils
 public:
     static void getColoredLabelMap(const cv::Mat&, cv::Mat&);
     static cv::Mat getColoredLabelMap(const cv::Mat&);
-    static cv::Scalar getLabelColor(unsigned int label);
+    static cv::Vec3b getLabelColor(unsigned int label);
     static bool loadCvMat(const char* filename, cv::Mat& image);
     static bool saveCvMat(const char* filename, const cv::Mat& image);
     static float distance(const BoundingBox3D& box1, const BoundingBox3D& box2, float searchRadius);

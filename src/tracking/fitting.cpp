@@ -163,7 +163,7 @@ void Fitting::draw(const cv::Mat& depthMap, const cv::Mat& labelMap)
     for (auto it = m_skeletons.begin(); it != m_skeletons.end(); it++) {
         const std::shared_ptr<Skeleton>& skeleton = it->second;
         drawJoint(skeleton->getRootJoint(), dispImg);
-        cv::circle(dispImg, skeleton->getRootJoint()->getPosition2d(), 4, Utils::getLabelColor(skeleton->getLabel()), -1);
+        cv::circle(dispImg, skeleton->getRootJoint()->getPosition2d(), 4, cv::Scalar(Utils::getLabelColor(skeleton->getLabel())), -1);
     }
 
     cv::imshow("Skeleton", dispImg);

@@ -17,7 +17,7 @@ void Utils::getColoredLabelMap(const cv::Mat& labelMap, cv::Mat& coloredLabelMap
             const unsigned int& label = labelMap.at<unsigned int>(cv::Point(i, j));
 
             if (label > 0) {
-                cv::Scalar color = getLabelColor(label);
+                cv::Vec3b color = getLabelColor(label);
                 coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[0] = (uchar)color[0];
                 coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[1] = (uchar)color[1];
                 coloredLabelMap.at<cv::Vec3b>(cv::Point(i, j))[2] = (uchar)color[2];
@@ -36,12 +36,12 @@ cv::Mat Utils::getColoredLabelMap(const cv::Mat& labelMap)
     return coloredLabelMap;
 }
 
-cv::Scalar Utils::getLabelColor(unsigned int label)
+cv::Vec3b Utils::getLabelColor(unsigned int label)
 {
     srand(label);
-    return cv::Scalar((uchar)((rand() / (float)RAND_MAX) * 255),
-                     (uchar)((rand() / (float)RAND_MAX) * 255),
-                     (uchar)((rand() / (float)RAND_MAX) * 255));
+    return cv::Vec3b((rand() / (float)RAND_MAX) * 255,
+                     (rand() / (float)RAND_MAX) * 255,
+                     (rand() / (float)RAND_MAX) * 255);
 }
 
 bool Utils::loadCvMat(const char* filename, cv::Mat& image)

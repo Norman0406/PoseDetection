@@ -39,6 +39,8 @@ void FittingMethodPSO::iProcess(const cv::Mat& depthMap,
         skeleton->update(projectionMatrix);
     }
 
+    return;
+
     // TODO: define the function and the actual parameters that are to be optimized.
     // The optimization is run for the 3d root joint position and every subsequent
     // bone that is not fixed. The energy is computed from the current bone to the
