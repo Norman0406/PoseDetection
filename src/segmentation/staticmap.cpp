@@ -3,6 +3,7 @@
 namespace pose
 {
 StaticMap::StaticMap()
+    : Module("StaticMap")
 {
     m_updateFrames = 0;
     setBackgroundResetRatio(0.2f);
@@ -58,6 +59,8 @@ const cv::Mat& StaticMap::getForeground() const
 
 void StaticMap::process(const cv::Mat& depthMap)
 {
+    begin();
+
     if (depthMap.cols != m_background.cols || depthMap.rows != m_background.rows) {
         m_foreground = cv::Mat(depthMap.rows, depthMap.cols, CV_32F);
         m_foregroundMask = cv::Mat(depthMap.rows, depthMap.cols, CV_8U);
@@ -133,6 +136,8 @@ void StaticMap::process(const cv::Mat& depthMap)
         if (m_updateFrames > 0)
             m_updateFrames--;
     }*/
+
+    end();
 }
 
 void StaticMap::filterContours()

@@ -8,13 +8,17 @@
 #include <flann/flann.hpp>
 #pragma warning(default: 4996)
 
+#include <utils/module.h>
+
 namespace pose
 {
 class Skeleton;
 class Joint;
 class FittingMethod;
+struct TrackingCluster;
 
 class Fitting
+        : public Module
 {
 public:
     Fitting();
@@ -22,11 +26,12 @@ public:
 
     void process(const cv::Mat& depthMap,
                  const cv::Mat& pointCloud,
+                 const std::vector<std::shared_ptr<TrackingCluster>>& clusters,
                  const cv::Mat& labelMap,
                  const cv::Mat& projectionMatrix);
 
 private:
-    void create(const cv::Mat& labelMap);
+    void create(const std::vector<std::shared_ptr<TrackingCluster>>& clusters);
     void update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
     void draw(const cv::Mat& depthMap, const cv::Mat& pointCloud);
     void drawJoint(const std::shared_ptr<Joint>& joint, cv::Mat& dispImg);

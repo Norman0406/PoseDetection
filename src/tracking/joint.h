@@ -45,6 +45,8 @@ public:
     void setPosition(const cv::Point3f& pos3d, const cv::Point2f& pos2d);
     void setConfidence(float confidence);
 
+    float getEnergy() const;
+
     const Joint* getJoint(JointType type) const;
 
     void update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix);

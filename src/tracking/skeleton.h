@@ -25,8 +25,6 @@ public:
     float getEnergy() const;
 
 private:
-    float m_energy;
-
     std::shared_ptr<Joint> m_rootJoint;
     unsigned int m_label;
     cv::Point3f m_position;

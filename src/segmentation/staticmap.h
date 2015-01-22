@@ -2,6 +2,7 @@
 #define STATICMAP_H
 
 #include <opencv2/opencv.hpp>
+#include <utils/module.h>
 
 // TODO: compute normals and cluster normals by their direction to filter out walls and the floor
 
@@ -17,6 +18,7 @@
 namespace pose
 {
 class StaticMap
+        : public Module
 {
 public:
     StaticMap();

@@ -1,4 +1,5 @@
 #include "skeleton.h"
+#include "bone.h"
 #include <utils/utils.h>
 
 namespace pose
@@ -7,8 +8,7 @@ Skeleton::Skeleton(unsigned int label, std::shared_ptr<Joint> rootJoint)
     : m_label(label),
       m_rootJoint(rootJoint),
       m_position(0, 0, 0),
-      m_isInitialized(false),
-      m_energy(std::numeric_limits<float>::infinity())
+      m_isInitialized(false)
 {
 }
 
@@ -44,7 +44,10 @@ bool Skeleton::isInitialized() const
 
 float Skeleton::getEnergy() const
 {
-    return m_energy;
+    float energy = 0;
+    for (size_t i = 0; i < m_rootJoint->getBones().size(); i++)
+        energy += m_rootJoint->getBones()[i]->getEnergy();
+    return energy;
 }
 
 void Skeleton::update(const cv::Mat& projectionMatrix)

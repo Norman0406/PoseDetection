@@ -6,6 +6,7 @@
 #include "connectedcomponentlabeling.h"
 #include <utils/boundingbox2d.h>
 #include <utils/boundingbox3d.h>
+#include <utils/module.h>
 
 namespace pose
 {
@@ -95,6 +96,7 @@ struct TrackingCluster
 };
 
 class Tracking
+        : public Module
 {
 public:
     Tracking();
@@ -102,6 +104,7 @@ public:
 
     void setSearchRadius(float);
 
+    const std::vector<std::shared_ptr<TrackingCluster>>& getClusters() const;
     const cv::Mat& getLabelMap() const;
     cv::Mat getColoredLabelMap();
 
@@ -149,7 +152,6 @@ int Tracking::getNextFreeId(const std::vector<std::shared_ptr<T>>& objects) cons
 
     return id;
 }
-
 }
 
 #endif // LABELING_H

@@ -33,7 +33,6 @@ protected:
                           const cv::Mat& projectionMatrix) = 0;
 
     void updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
-    float skeletonDistance(std::shared_ptr<Bone> bone);
 
     bool nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr);
 
@@ -41,6 +40,8 @@ private:
     bool nearestPointFlann(const cv::Point3f& point, cv::Point3f& nearest, float& distSqr);
     bool nearestPointUnderneath(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr);
     bool nearestPoint8Conn(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr);
+
+    float skeletonDistanceFunction(std::shared_ptr<Bone> bone);
 
     bool m_updateFlannIndex;
     const flann::Matrix<float>* m_flannDataset;

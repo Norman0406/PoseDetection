@@ -3,12 +3,14 @@
 #include "joint.h"
 #include "bone.h"
 #include "fittingmethodpso.h"
+#include <segmentation/tracking.h>
 #include <utils/utils.h>
 
 namespace pose
 {
 Fitting::Fitting()
-    : m_method(0),
+    : Module("Fitting"),
+      m_method(0),
       m_flannData(0)
 {
     m_method = new FittingMethodPSO();
@@ -23,37 +25,37 @@ Fitting::~Fitting()
 
 void Fitting::process(const cv::Mat& depthMap,
                       const cv::Mat& pointCloud,
+                      const std::vector<std::shared_ptr<TrackingCluster>>& clusters,
                       const cv::Mat& labelMap,
                       const cv::Mat& projectionMatrix)
 {
+    begin();
+
     // create and update the skeleton list
-    create(labelMap);
+    create(clusters);
 
     // update each skeleton to fit to its user
     update(depthMap, labelMap, pointCloud, projectionMatrix);
 
     // debug drawing
     draw(depthMap, labelMap);
+
+    end();
 }
 
-void Fitting::create(const cv::Mat& labelMap)
+void Fitting::create(const std::vector<std::shared_ptr<TrackingCluster>>& clusters)
 {
     // find labels and create new skeletons
     std::vector<int> labels;
-    for (int i = 0; i < labelMap.rows; i++) {
-        const unsigned int* labelRow = labelMap.ptr<unsigned int>(i);
-        for (int j = 0; j < labelMap.cols; j++) {
-            unsigned int label = labelRow[j];
+    for (size_t i = 0; i < clusters.size(); i++) {
+        const std::shared_ptr<TrackingCluster>& cluster = clusters[i];
+        unsigned int label = cluster->id;
 
-            if (label > 0) {
-                if (std::find(labels.begin(), labels.end(), label) == labels.end())
-                    labels.push_back(label);
+        if (std::find(labels.begin(), labels.end(), label) == labels.end())
+            labels.push_back(label);
 
-                // create a new skeleton if the label is not yet available
-                if (m_skeletons.find(label) == m_skeletons.end())
-                    m_skeletons[label] = std::shared_ptr<Skeleton>(new SkeletonUpperBody(label));
-            }
-        }
+        if (m_skeletons.find(label) == m_skeletons.end())
+            m_skeletons[label] = std::shared_ptr<Skeleton>(new SkeletonUpperBody(label));
     }
 
     // remove old skeletons

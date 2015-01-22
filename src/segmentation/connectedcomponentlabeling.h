@@ -5,6 +5,7 @@
 #include <memory>
 #include <utils/boundingbox2d.h>
 #include <utils/boundingbox3d.h>
+#include <utils/module.h>
 
 namespace pose
 {
@@ -16,10 +17,10 @@ struct ConnectedComponent
     BoundingBox2D   boundingBox2d;
     BoundingBox3D   boundingBox3d;
     int             area;
-    std::vector<unsigned int> nearbyIds;
 };
 
 class ConnectedComponentLabeling
+        : public Module
 {
 public:
     ConnectedComponentLabeling();
@@ -39,11 +40,10 @@ private:
                                  const cv::Mat& pointcloud,
                                  const cv::Point& seed,
                                  unsigned int label);
-    std::vector<unsigned int> findNearbyComponents(unsigned int id);
 
     cv::Mat m_labelMap;
     cv::Mat m_coloredLabelMap;
-    cv::Mat m_tempComponent;
+    cv::Mat m_tempMask;
     std::vector<std::shared_ptr<ConnectedComponent> > m_components;
 
     float m_maxDistance;

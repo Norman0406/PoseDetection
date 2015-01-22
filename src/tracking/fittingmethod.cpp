@@ -1,6 +1,7 @@
 #include "fittingmethod.h"
 #include "bone.h"
 #include <utils/utils.h>
+#include <functional>
 
 namespace pose
 {
@@ -34,13 +35,33 @@ void FittingMethod::updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv:
 {
     skeleton->update(projectionMatrix);
 
+    std::function<float(std::shared_ptr<Bone>)> func = std::bind(&FittingMethod::skeletonDistanceFunction, this, std::placeholders::_1);
+
     // TODO: update skeleton energy
 }
 
-float FittingMethod::skeletonDistance(std::shared_ptr<Bone> bone)
+float FittingMethod::skeletonDistanceFunction(std::shared_ptr<Bone> bone)
 {
     // TODO: get energy for the bone
 
+    /*cv::Point3f point(0, 0, 0);
+    float dist = 0;
+
+    float distAvg = 0;
+    int num = 0;
+
+    if (nearestPoint(bone->getJointStart(), 0, 0, point, dist)) {
+        distAvg += dist;
+        num++;
+    }
+
+    if (nearestPoint(bone->getJointEnd(), 0, 0, point, dist)) {
+        distAvg += dist;
+        num++;
+    }
+
+    distAvg /= (float)num;
+    return distAvg;*/
     return 0;
 }
 

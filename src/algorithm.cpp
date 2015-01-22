@@ -70,7 +70,7 @@ bool Algorithm::process(float* depthData, int depthDataSize, float* pointsData, 
     cv::imshow("Tracking Labels", m_tracking->getColoredLabelMap());
 
     // fit a skeleton inside each user
-    m_fitting->process(depthMap, pointCloud, m_tracking->getLabelMap(), projectionMatrix);
+    m_fitting->process(depthMap, pointCloud, m_tracking->getClusters(), m_tracking->getLabelMap(), projectionMatrix);
 
     if (cv::waitKey(1) == 27)
         return false;

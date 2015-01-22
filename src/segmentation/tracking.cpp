@@ -7,6 +7,7 @@
 namespace pose
 {
 Tracking::Tracking()
+    : Module("Tracking")
 {
     setSearchRadius(0.1f);
     m_minBoundingBoxOverlap = 0.5f;
@@ -19,6 +20,11 @@ Tracking::~Tracking()
 void Tracking::setSearchRadius(float radius)
 {
     m_searchRadius = radius;
+}
+
+const std::vector<std::shared_ptr<TrackingCluster>>& Tracking::getClusters() const
+{
+    return m_trackingClusters;
 }
 
 const cv::Mat& Tracking::getLabelMap() const
@@ -37,6 +43,8 @@ void Tracking::process(const cv::Mat& depthMap,
                        const std::vector<std::shared_ptr<ConnectedComponent>>& components,
                        const cv::Mat& projectionMatrix)
 {
+    begin();
+
     UNUSED(projectionMatrix);
 
     // create a new label map
@@ -51,6 +59,8 @@ void Tracking::process(const cv::Mat& depthMap,
     //resolveSplits();
     deleteLostObjects();
     createLabelMap(labelMap);
+
+    end();
 }
 
 void Tracking::createAssignments(const std::vector<std::shared_ptr<ConnectedComponent>>& components)
