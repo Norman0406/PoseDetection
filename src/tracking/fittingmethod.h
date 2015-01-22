@@ -8,12 +8,14 @@
 #pragma warning(default: 4996)
 
 #include "skeleton.h"
+#include <utils/module.h>
 
 namespace pose
 {
 class Bone;
 
 class FittingMethod
+        : public Module
 {
 public:
     virtual ~FittingMethod();

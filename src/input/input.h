@@ -2,10 +2,12 @@
 #define INPUT_H
 
 #include <opencv2/opencv.hpp>
+#include <utils/module.h>
 
 namespace pose
 {
 class Input
+        : public Module
 {
 public:
     Input(int width, int height);

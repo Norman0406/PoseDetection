@@ -6,7 +6,8 @@
 namespace pose
 {
 FittingMethod::FittingMethod()
-    : m_flannIndex(0),
+    : Module("FittingMethod"),
+      m_flannIndex(0),
       m_updateFlannIndex(true),
       m_flannDataset(0)
 {
@@ -25,10 +26,14 @@ void FittingMethod::process(const cv::Mat& depthMap,
                             std::shared_ptr<Skeleton> skeleton,
                             const cv::Mat& projectionMatrix)
 {
+    begin();
+
     m_updateFlannIndex = true;
     m_flannDataset = &flannDataset;
 
     iProcess(depthMap, pointCloud, skeleton, projectionMatrix);
+
+    end();
 }
 
 void FittingMethod::updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)

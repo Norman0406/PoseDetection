@@ -4,7 +4,8 @@
 namespace pose
 {
 Input::Input(int width, int height)
-    : m_width(width),
+    : Module("Input"),
+      m_width(width),
       m_height(height)
 {
     m_depthMap = cv::Mat(m_height, m_width, CV_32F);
@@ -19,6 +20,8 @@ Input::~Input()
 
 void Input::process(const float* depthData, int depthDataSize, const float* pointsData, int pointsDataSize)
 {
+    begin();
+
     // check data sizes
     if (depthDataSize * sizeof(float) != m_depthMap.cols * m_depthMap.rows * m_depthMap.elemSize() ||
         pointsDataSize * sizeof(float) != m_pointCloud.cols * m_pointCloud.rows * m_pointCloud.elemSize())
@@ -31,6 +34,8 @@ void Input::process(const float* depthData, int depthDataSize, const float* poin
     // compute projection matrix
     if (!m_pointCloud.empty() && m_projectionMatrix.empty())
         m_projectionMatrix = computeProjectionMatrix(m_pointCloud);
+
+    end();
 }
 
 const bool Input::ready() const
