@@ -97,18 +97,37 @@ void StreamReader::seekToFrame(int frame)
     while (curFrame < frame - 1) {
         fread(&curFrame, sizeof(int), 1, m_stream);
 
-        // skip header
-        fseek(m_stream, 3 * sizeof(int), SEEK_CUR);
+        int matCount = 0;
+        fread(&matCount, sizeof(int), 1, m_stream);
 
-        int size = 0;
-        fread(&size, sizeof(int), 1, m_stream);
+        // skip image
+        for (int i = 0; i < matCount; i++) {
+            fseek(m_stream, 3 * sizeof(int), SEEK_CUR);
 
-        // skip image data
-        fseek(m_stream, size, SEEK_CUR);
+            int size = 0;
+            fread(&size, sizeof(int), 1, m_stream);
+
+            fseek(m_stream, size, SEEK_CUR);
+        }
+
     }
 }
 
 bool StreamReader::read(cv::Mat& image)
+{
+    std::vector<cv::Mat> mats;
+    if (!read(mats))
+        return false;
+
+    if (mats.size() == 0)
+        return false;
+
+    image = mats[0];
+
+    return true;
+}
+
+bool StreamReader::read(std::vector<cv::Mat>& mats)
 {
     if (m_index == m_endFrame || m_index == m_frameCount - 1) {
         if (m_loop)
@@ -117,19 +136,34 @@ bool StreamReader::read(cv::Mat& image)
             return false;
     }
 
-    int width = 0, height = 0, flags = 0, size = 0;
+    int matCount = 0;
     fread(&m_index, sizeof(int), 1, m_stream);
+    fread(&matCount, sizeof(int), 1, m_stream);
+
+    if (matCount == 0)
+        int k = 0;  // why is there a 0 at frame 178?
+
+    if (mats.size() != matCount)
+        mats.resize(matCount);
+
+    for (int i = 0; i < matCount; i++)
+        readMat(mats[i]);
+
+    return true;
+}
+
+void StreamReader::readMat(cv::Mat& mat)
+{
+    int width = 0, height = 0, flags = 0, size = 0;
     fread(&width, sizeof(int), 1, m_stream);
     fread(&height, sizeof(int), 1, m_stream);
     fread(&flags, sizeof(int), 1, m_stream);
     fread(&size, sizeof(int), 1, m_stream);
 
-    int imageSize = image.elemSize() * image.cols * image.rows;
-    if (image.cols != width || image.rows != height || image.flags != flags || imageSize != size)
-        image = cv::Mat(height, width, CV_MAT_TYPE(flags));
+    int matSize = mat.elemSize() * mat.cols * mat.rows;
+    if (mat.cols != width || mat.rows != height || mat.flags != flags || matSize != size)
+        mat = cv::Mat(height, width, CV_MAT_TYPE(flags));
 
-    fread(image.data, sizeof(uchar), size, m_stream);
-
-    return true;
+    fread(mat.data, sizeof(uchar), size, m_stream);
 }
 }

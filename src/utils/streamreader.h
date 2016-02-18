@@ -23,9 +23,11 @@ public:
 
     void reset();
     bool read(cv::Mat&);
+    bool read(std::vector<cv::Mat>& mats);
 
 private:
     void seekToFrame(int frame);
+    void readMat(cv::Mat& mat);
 
     bool m_loop;
     int m_startFrame;

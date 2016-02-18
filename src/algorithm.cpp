@@ -16,8 +16,7 @@ namespace pose
 const int startFrame = 20;
 const int endFrame = -1;
 const bool loop = false;
-StreamReader depthReader("d:/sequences/scene1/depth.seq", startFrame, endFrame, loop);
-StreamReader pointsReader("d:/sequences/scene1/pointcloud.seq", startFrame, endFrame, loop);
+StreamReader cameraReader("d:/sequences/scene1/scene.seq", startFrame, endFrame, loop);
 StreamReader foregroundReader("d:/sequences/scene1/foreground.seq", startFrame, endFrame, loop);
 
 cv::Mat projectionMatrix;
@@ -32,13 +31,9 @@ Algorithm::Algorithm(int width, int height)
     m_tracking = new Tracking();
     m_fitting = new Fitting();
 
-    depthReader.setStartFrame(startFrame);
-    depthReader.setEndFrame(endFrame);
-    depthReader.setLoop(loop);
-
-    pointsReader.setStartFrame(startFrame);
-    pointsReader.setEndFrame(endFrame);
-    pointsReader.setLoop(loop);
+    cameraReader.setStartFrame(startFrame);
+    cameraReader.setEndFrame(endFrame);
+    cameraReader.setLoop(loop);
 
     foregroundReader.setStartFrame(startFrame);
     foregroundReader.setEndFrame(endFrame);
@@ -64,29 +59,31 @@ bool Algorithm::process(float* depthData, int depthDataSize, float* pointsData, 
     UNUSED(pointsData);
     UNUSED(pointsDataSize);
 
-    cv::Mat pointCloud;
+    std::vector<cv::Mat> cameraImages;
     cv::Mat foreground;
-
-    depthReader.read(m_depthMap);
-    pointsReader.read(pointCloud);
-    foregroundReader.read(foreground);
-
-    // detect connected components
-    m_ccLabelling->process(foreground, pointCloud);
-    cv::imshow("Labels", m_ccLabelling->getColoredLabelMap());
-
-    const cv::Mat& labelMap = m_ccLabelling->getLabelMap();
-    std::vector<std::shared_ptr<ConnectedComponent>> components = m_ccLabelling->getComponents();
-
-    // cluster components and track the users
-    m_tracking->process(foreground, labelMap, components, projectionMatrix);
-    cv::imshow("Tracking Labels", m_tracking->getColoredLabelMap());
-
-    // fit a skeleton inside each user
-    m_fitting->process(foreground, pointCloud, m_tracking->getClusters(), m_tracking->getLabelMap(), projectionMatrix);
-
-    if (cv::waitKey(1) == 27)
+    if (!cameraReader.read(cameraImages) || !foregroundReader.read(foreground))
         return false;
+
+    m_depthMap = cameraImages[0];
+    cv::Mat pointCloud = cameraImages[1];
+
+//    // detect connected components
+//    m_ccLabelling->process(foreground, pointCloud);
+//    cv::imshow("Labels", m_ccLabelling->getColoredLabelMap());
+
+//    const cv::Mat& labelMap = m_ccLabelling->getLabelMap();
+//    std::vector<std::shared_ptr<ConnectedComponent>> components = m_ccLabelling->getComponents();
+
+//    // cluster components and track the users
+//    m_tracking->process(foreground, labelMap, components, projectionMatrix);
+//    cv::imshow("Tracking Labels", m_tracking->getColoredLabelMap());
+
+//    // fit a skeleton inside each user
+//    m_fitting->process(foreground, pointCloud, m_tracking->getClusters(), m_tracking->getLabelMap(), projectionMatrix);
+
+//    if (cv::waitKey(1) == 27)
+//        return false;
+
     return true;
 }
 

@@ -44,11 +44,30 @@ void StreamWriter::reset()
         m_queue.pop();
 }
 
-void StreamWriter::write(const cv::Mat& image)
+void StreamWriter::write(const std::vector<cv::Mat>& mats)
+{
+    // push a clone of the images onto the queue
+    boost::mutex::scoped_lock(m_mutex);
+
+    std::vector<cv::Mat> clonedMats(mats.size());
+    for (size_t i = 0; i < mats.size(); i++)
+        clonedMats[i] = mats[i].clone();
+
+    m_queue.push(clonedMats);
+
+    m_condition.notify_one();
+}
+
+void StreamWriter::write(const cv::Mat& mat)
 {
     // push a clone of the image onto the queue
     boost::mutex::scoped_lock(m_mutex);
-    m_queue.push(image.clone());
+
+    std::vector<cv::Mat> clonedMats(1);
+    clonedMats[0] = mat.clone();
+
+    m_queue.push(clonedMats);
+
     m_condition.notify_one();
 }
 
@@ -65,20 +84,32 @@ void StreamWriter::writeLoop()
             continue;
 
         // get next image off the queue
-        cv::Mat image = m_queue.front();
+
+        std::vector<cv::Mat> mats = m_queue.front();
         m_queue.pop();
         lock.unlock();
 
-        int size = image.elemSize() * image.cols * image.rows;
+        int matCount = mats.size();
 
         fwrite(&m_index, sizeof(int), 1, m_stream);
-        fwrite(&image.cols, sizeof(int), 1, m_stream);
-        fwrite(&image.rows, sizeof(int), 1, m_stream);
-        fwrite(&image.flags, sizeof(int), 1, m_stream);
-        fwrite(&size, sizeof(int), 1, m_stream);
-        fwrite(image.data, sizeof(uchar), size, m_stream);
+        fwrite(&matCount, sizeof(int), 1, m_stream);
+
+        for (size_t i = 0; i < mats.size(); i++)
+            writeMat(mats[i]);
+
         m_index++;
     }
+}
+
+void StreamWriter::writeMat(const cv::Mat& mat)
+{
+    int size = mat.elemSize() * mat.cols * mat.rows;
+
+    fwrite(&mat.cols, sizeof(int), 1, m_stream);
+    fwrite(&mat.rows, sizeof(int), 1, m_stream);
+    fwrite(&mat.flags, sizeof(int), 1, m_stream);
+    fwrite(&size, sizeof(int), 1, m_stream);
+    fwrite(mat.data, sizeof(uchar), size, m_stream);
 }
 
 }
