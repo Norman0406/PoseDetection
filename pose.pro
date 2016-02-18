@@ -23,7 +23,9 @@ SOURCES += src/pose.cc \
     src/utils/numberedfilewriter.cpp \
     src/utils/numberedfilereader.cpp \
     src/utils/module.cpp \
-    src/utils/timer.cpp
+    src/utils/timer.cpp \
+    src/utils/streamreader.cpp \
+    src/utils/streamwriter.cpp
 
 HEADERS += include/pose.h \
     src/internal.h \
@@ -47,24 +49,27 @@ HEADERS += include/pose.h \
     src/utils/numberedfilewriter.h \
     src/utils/numberedfilereader.h \
     src/utils/module.h \
-    src/utils/timer.h
+    src/utils/timer.h \
+    src/utils/streamreader.h \
+    src/utils/streamwriter.h
 
 INCLUDEPATH += $${_PRO_FILE_PWD_}/src \
     $${_PRO_FILE_PWD_}/include
 
 win32 {
-    DEFINES += _CRT_SECURE_NO_WARNINGS
+    DEFINES += _CRT_SECURE_NO_WARNINGS \
+        DEBUG_IMAGES
 
     INCLUDEPATH += $$(OPENCV_DIR_2_4_9)/build/include \
         $$(EIGEN_DIR_3) \
-        $$(BOOST_DIR_1_56) \
+        $$(BOOST_DIR_1_58) \
         $$(FLANN_DIR_1_8_4)/include
 
     CONFIG(debug, debug|release) {
         BUILDDIR = debug
         QMAKE_CXXFLAGS_DEBUG += /openmp
 
-        LIBS += -L$$(BOOST_DIR_1_56)\stage\lib \
+        LIBS += -L$$(BOOST_DIR_1_58)\stage\lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_core249d.lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_imgproc249d.lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249d.lib \
@@ -78,7 +83,7 @@ win32 {
         BUILDDIR = release
         QMAKE_CXXFLAGS_RELEASE += /openmp
 
-        LIBS += -L$$(BOOST_DIR_1_56)\stage\lib \
+        LIBS += -L$$(BOOST_DIR_1_58)\stage\lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_core249.lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_imgproc249.lib \
             $$(OPENCV_DIR_2_4_9)\build\x86\vc12\lib\opencv_highgui249.lib \

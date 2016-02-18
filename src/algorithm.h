@@ -2,6 +2,7 @@
 #define ALGORITHM_H
 
 #include <opencv2/opencv.hpp>
+#include "pose.h"
 
 namespace pose
 {
@@ -19,6 +20,8 @@ public:
 
     bool process(float* depthData, int depthDataSize, float* pointsData, int pointsDataSize);
 
+    bool getImage(PoseImageType type, int* width, int* height, int* size, void** data);
+
 private:
     Input* m_input;
     StaticMap* m_staticMap;
@@ -28,6 +31,8 @@ private:
 
     int m_width;
     int m_height;
+
+    cv::Mat m_depthMap;
 };
 }
 

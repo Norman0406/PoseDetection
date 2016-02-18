@@ -38,7 +38,7 @@ cv::Mat Tracking::getColoredLabelMap()
     return m_coloredLabelMap;
 }
 
-void Tracking::process(const cv::Mat& depthMap,
+void Tracking::process(const cv::Mat& foreground,
                        const cv::Mat& labelMap,
                        const std::vector<std::shared_ptr<ConnectedComponent>>& components,
                        const cv::Mat& projectionMatrix)
@@ -48,17 +48,31 @@ void Tracking::process(const cv::Mat& depthMap,
     UNUSED(projectionMatrix);
 
     // create a new label map
-    if (depthMap.cols != m_labelMap.cols || depthMap.rows != m_labelMap.rows) {
-        m_labelMap = cv::Mat(depthMap.rows, depthMap.cols, CV_32S);
+    if (foreground.cols != m_labelMap.cols || foreground.rows != m_labelMap.rows) {
+        m_labelMap = cv::Mat(foreground.rows, foreground.cols, CV_32S);
     }
     m_labelMap.setTo(0);
 
-    createAssignments(components);
+    /*createAssignments(components);
     //cluster();
     cluster2();
     //resolveSplits();
     deleteLostObjects();
-    createLabelMap(labelMap);
+    createLabelMap(labelMap);*/
+
+    if (m_trackingClusters.empty()) {
+        std::shared_ptr<TrackingCluster> cluster(new TrackingCluster());
+        cluster->id = 1;
+        cluster->frames = 1;
+        m_trackingClusters.push_back(cluster);
+    }
+
+    for (int i = 0; i < foreground.rows; i++) {
+        for (int j = 0; j < foreground.cols; j++) {
+            if (foreground.ptr<float>(i)[j] > 0)
+                m_labelMap.ptr<unsigned int>(i)[j] = 1;
+        }
+    }
 
     end();
 }

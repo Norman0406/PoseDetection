@@ -22,8 +22,6 @@ public:
     const std::shared_ptr<Joint>& getRootJoint() const;
     const Joint* getJoint(Joint::JointType type) const;
 
-    float getEnergy() const;
-
 private:
     std::shared_ptr<Joint> m_rootJoint;
     unsigned int m_label;

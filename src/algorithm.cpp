@@ -5,19 +5,21 @@
 #include <segmentation/tracking.h>
 #include <tracking/fitting.h>
 
-#include <utils/numberedfilereader.h>
+#include <utils/streamreader.h>
+
 #include <utils/utils.h>
 
 namespace pose
 {
 
 // TEMP
-const int startFrame = 50;
+const int startFrame = 20;
 const int endFrame = -1;
-const bool loop = true;
-NumberedFileReader depthReader("d:/sequences/scene2/depth/depth_%i.cvm", startFrame, endFrame, loop);
-NumberedFileReader pointsReader("d:/sequences/scene2/pointcloud/pointcloud_%i.cvm", startFrame, endFrame, loop);
-NumberedFileReader foregroundReader("d:/sequences/scene2/foreground/foreground_%i.cvm", startFrame, endFrame, loop);
+const bool loop = false;
+StreamReader depthReader("d:/sequences/scene1/depth.seq", startFrame, endFrame, loop);
+StreamReader pointsReader("d:/sequences/scene1/pointcloud.seq", startFrame, endFrame, loop);
+StreamReader foregroundReader("d:/sequences/scene1/foreground.seq", startFrame, endFrame, loop);
+
 cv::Mat projectionMatrix;
 
 Algorithm::Algorithm(int width, int height)
@@ -30,8 +32,20 @@ Algorithm::Algorithm(int width, int height)
     m_tracking = new Tracking();
     m_fitting = new Fitting();
 
+    depthReader.setStartFrame(startFrame);
+    depthReader.setEndFrame(endFrame);
+    depthReader.setLoop(loop);
+
+    pointsReader.setStartFrame(startFrame);
+    pointsReader.setEndFrame(endFrame);
+    pointsReader.setLoop(loop);
+
+    foregroundReader.setStartFrame(startFrame);
+    foregroundReader.setEndFrame(endFrame);
+    foregroundReader.setLoop(loop);
+
     // TEMP
-    Utils::loadCvMat("d:/sequences/scene2/projection.cvm", projectionMatrix);
+    Utils::loadCvMat("d:/sequences/scene1/projection.cvm", projectionMatrix);
 }
 
 Algorithm::~Algorithm()
@@ -50,11 +64,10 @@ bool Algorithm::process(float* depthData, int depthDataSize, float* pointsData, 
     UNUSED(pointsData);
     UNUSED(pointsDataSize);
 
-    cv::Mat depthMap;
     cv::Mat pointCloud;
     cv::Mat foreground;
 
-    depthReader.read(depthMap);
+    depthReader.read(m_depthMap);
     pointsReader.read(pointCloud);
     foregroundReader.read(foreground);
 
@@ -66,11 +79,11 @@ bool Algorithm::process(float* depthData, int depthDataSize, float* pointsData, 
     std::vector<std::shared_ptr<ConnectedComponent>> components = m_ccLabelling->getComponents();
 
     // cluster components and track the users
-    m_tracking->process(depthMap, labelMap, components, projectionMatrix);
+    m_tracking->process(foreground, labelMap, components, projectionMatrix);
     cv::imshow("Tracking Labels", m_tracking->getColoredLabelMap());
 
     // fit a skeleton inside each user
-    m_fitting->process(depthMap, pointCloud, m_tracking->getClusters(), m_tracking->getLabelMap(), projectionMatrix);
+    m_fitting->process(foreground, pointCloud, m_tracking->getClusters(), m_tracking->getLabelMap(), projectionMatrix);
 
     if (cv::waitKey(1) == 27)
         return false;
@@ -107,4 +120,44 @@ bool Algorithm::process(float* depthData, int depthDataSize, float* pointsData, 
 
     return true;
 }*/
+
+bool Algorithm::getImage(PoseImageType type, int* width, int* height, int* size, void** data)
+{
+    switch (type) {
+    case IMAGE_DEPTH:
+        {
+            *width = m_depthMap.cols;
+            *height = m_depthMap.rows;
+            *size = m_depthMap.cols * m_depthMap.rows * m_depthMap.elemSize();
+            *data = m_depthMap.data;
+        }
+        break;
+    case IMAGE_POINTS:
+        break;
+    case IMAGE_USERSEGMENTATION:
+        break;
+#ifdef DEBUG_IMAGES
+    case IMAGE_BACKGROUND:
+        break;
+    case IMAGE_FOREGROUND:
+        break;
+    case IMAGE_REGIONS:
+        break;
+#else
+    case IMAGE_BACKGROUND:
+        // TODO: log error
+        break;
+    case IMAGE_FOREGROUND:
+        // TODO: log error
+        break;
+    case IMAGE_REGIONS:
+        // TODO: log error
+        break;
+#endif
+    default:
+        return false;
+    }
+
+    return true;
+}
 }

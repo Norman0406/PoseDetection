@@ -9,9 +9,7 @@ Bone::Bone(std::shared_ptr<Joint> jointStart, std::shared_ptr<Joint> jointEnd, f
       m_jointEnd(jointEnd),
       m_orientation(Eigen::Quaterniond::Identity()),
       m_length(length),
-      m_isFixed(isFixed),
-      m_energy(std::numeric_limits<float>::infinity()),
-      m_forwardEnergy(std::numeric_limits<float>::infinity())
+      m_isFixed(isFixed)
 {
 }
 
@@ -48,16 +46,6 @@ void Bone::setOrientation(const Eigen::Quaternion<double>& orientation)
 void Bone::setLength(float length)
 {
     m_length = length;
-}
-
-float Bone::getEnergy() const
-{
-    return m_energy;
-}
-
-float Bone::getForwardEnergy() const
-{
-    return m_forwardEnergy;
 }
 
 void Bone::update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix)

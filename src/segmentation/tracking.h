@@ -108,7 +108,7 @@ public:
     const cv::Mat& getLabelMap() const;
     cv::Mat getColoredLabelMap();
 
-    void process(const cv::Mat& depthMap,
+    void process(const cv::Mat& foreground,
                  const cv::Mat& labelMap,
                  const std::vector<std::shared_ptr<ConnectedComponent>>& components,
                  const cv::Mat& projectionMatrix);

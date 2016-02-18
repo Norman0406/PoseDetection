@@ -42,14 +42,6 @@ bool Skeleton::isInitialized() const
     return m_isInitialized;
 }
 
-float Skeleton::getEnergy() const
-{
-    float energy = 0;
-    for (size_t i = 0; i < m_rootJoint->getBones().size(); i++)
-        energy += m_rootJoint->getBones()[i]->getEnergy();
-    return energy;
-}
-
 void Skeleton::update(const cv::Mat& projectionMatrix)
 {
     // compute image position

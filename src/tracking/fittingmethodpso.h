@@ -27,10 +27,12 @@ protected:
                   const cv::Mat& projectionMatrix);
 
 private:
+    void optimizeBone(std::shared_ptr<Bone> bone);
+
     struct Particle
     {
         Particle(int numVar) {
-            numVar = numVar;
+            this->numVar = numVar;
             x = new float[numVar];
             v = new float[numVar];
             xStar = new float[numVar];
@@ -64,7 +66,7 @@ private:
         }
     };
 
-    const Particle* initialize();
+    const Particle* initialize(const cv::Point3f& pos, std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
 
     std::vector<Particle*> m_particles;
 

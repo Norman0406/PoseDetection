@@ -23,7 +23,7 @@ Fitting::~Fitting()
     delete[] m_flannData;
 }
 
-void Fitting::process(const cv::Mat& depthMap,
+void Fitting::process(const cv::Mat& foreground,
                       const cv::Mat& pointCloud,
                       const std::vector<std::shared_ptr<TrackingCluster>>& clusters,
                       const cv::Mat& labelMap,
@@ -35,10 +35,10 @@ void Fitting::process(const cv::Mat& depthMap,
     create(clusters);
 
     // update each skeleton to fit to its user
-    update(depthMap, labelMap, pointCloud, projectionMatrix);
+    update(foreground, labelMap, pointCloud, projectionMatrix);
 
     // debug drawing
-    draw(depthMap, labelMap);
+    draw(foreground, labelMap);
 
     end();
 }
@@ -68,7 +68,7 @@ void Fitting::create(const std::vector<std::shared_ptr<TrackingCluster>>& cluste
     }
 }
 
-void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
+void Fitting::update(const cv::Mat& foreground, const cv::Mat& labelMap, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
 {
     // create a buffer that will hold the flann point cloud data
     if (!m_flannData)
@@ -80,7 +80,7 @@ void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv:
         const std::shared_ptr<Skeleton>& skeleton = it->second;
         unsigned int label = skeleton->getLabel();
 
-        cv::Mat userDepthMap(depthMap.rows, depthMap.cols, depthMap.type());
+        cv::Mat userDepthMap(foreground.rows, foreground.cols, foreground.type());
         cv::Mat userPointCloud(pointCloud.rows, pointCloud.cols, pointCloud.type());
         userDepthMap.setTo(0);
         userPointCloud.setTo(0);
@@ -88,20 +88,21 @@ void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv:
         // only compute the center of mass and update the skeleton position if the skeleton
         // is new and has not yet been initialized
         bool updatePosition = !skeleton->isInitialized();
+        //bool updatePosition = true;
 
         float m100 = 0, m010 = 0, m001 = 0, m000 = 0;
 
         int flannDataIndex = 0;
 
         // create an image that contains only pixels for the selected skeleton
-        for (int i = 0; i < depthMap.rows; i++) {
+        for (int i = 0; i < foreground.rows; i++) {
             const unsigned int* labelRow = labelMap.ptr<unsigned int>(i);
-            const float* depthRow = depthMap.ptr<float>(i);
+            const float* depthRow = foreground.ptr<float>(i);
             const cv::Vec3f* pointsRow = pointCloud.ptr<cv::Vec3f>(i);
             float* userDepthRow = userDepthMap.ptr<float>(i);
             cv::Vec3f* userPointsRow = userPointCloud.ptr<cv::Vec3f>(i);
 
-            for (int j = 0; j < depthMap.cols; j++) {
+            for (int j = 0; j < foreground.cols; j++) {
                 if (labelRow[j] == label) {
                     const float& depthValue = depthRow[j];
                     const cv::Vec3f& pointsValue = pointsRow[j];
@@ -139,14 +140,14 @@ void Fitting::update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv:
     }
 }
 
-void Fitting::draw(const cv::Mat& depthMap, const cv::Mat& labelMap)
+void Fitting::draw(const cv::Mat& foreground, const cv::Mat& labelMap)
 {
     cv::Mat dispImg(labelMap.rows, labelMap.cols, CV_8UC3);
     dispImg.setTo(0);
 
     // draw depth values
     for (int i = 0; i < labelMap.rows; i++) {
-        const float* depthRow = depthMap.ptr<float>(i);
+        const float* depthRow = foreground.ptr<float>(i);
         const unsigned int* labelRow = labelMap.ptr<unsigned int>(i);
         cv::Vec3b* dispRow = dispImg.ptr<cv::Vec3b>(i);
 

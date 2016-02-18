@@ -9,7 +9,7 @@ ConnectedComponentLabeling::ConnectedComponentLabeling()
     : Module("ConnectedComponentLabeling"),
       m_maxDistance(0.1f)
 {
-    setMaxDistance(0.1f);
+    setMaxDistance(0.3f);
 }
 
 ConnectedComponentLabeling::~ConnectedComponentLabeling()
@@ -85,7 +85,7 @@ void ConnectedComponentLabeling::findConnectedComponents(const cv::Mat& foregrou
     int flags = 4 | (255 << 8) | cv::FLOODFILL_MASK_ONLY;
     cv::floodFill(foreground, m_tempMask, seed, cv::Scalar(0), 0, cv::Scalar(m_maxDistance), cv::Scalar(m_maxDistance), flags);
 
-    int size = 1;
+    int size = 0;
 
     // initialize bounding box
     float bbMinDepth = 1000;

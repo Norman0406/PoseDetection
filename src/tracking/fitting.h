@@ -24,7 +24,7 @@ public:
     Fitting();
     ~Fitting();
 
-    void process(const cv::Mat& depthMap,
+    void process(const cv::Mat& foreground,
                  const cv::Mat& pointCloud,
                  const std::vector<std::shared_ptr<TrackingCluster>>& clusters,
                  const cv::Mat& labelMap,
@@ -32,8 +32,8 @@ public:
 
 private:
     void create(const std::vector<std::shared_ptr<TrackingCluster>>& clusters);
-    void update(const cv::Mat& depthMap, const cv::Mat& labelMap, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
-    void draw(const cv::Mat& depthMap, const cv::Mat& pointCloud);
+    void update(const cv::Mat& foreground, const cv::Mat& labelMap, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix);
+    void draw(const cv::Mat& foreground, const cv::Mat& pointCloud);
     void drawJoint(const std::shared_ptr<Joint>& joint, cv::Mat& dispImg);
 
     std::map<unsigned int, std::shared_ptr<Skeleton>> m_skeletons;

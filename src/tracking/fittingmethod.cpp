@@ -11,7 +11,11 @@ FittingMethod::FittingMethod()
       m_updateFlannIndex(true),
       m_flannDataset(0)
 {
+    m_searchRadius = 0.2f;
+    m_searchRadiusSqr = m_searchRadius * m_searchRadius;
+
     m_flannSearchParams = flann::SearchParams(flann::FLANN_CHECKS_UNLIMITED);
+    //m_flannSearchParams = flann::SearchParams(64);
     m_flannIndexParams = flann::KDTreeSingleIndexParams(15);
 }
 
@@ -36,38 +40,34 @@ void FittingMethod::process(const cv::Mat& depthMap,
     end();
 }
 
-void FittingMethod::updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
+float FittingMethod::updateSkeleton(std::shared_ptr<Skeleton> skeleton, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
 {
+    // update joint hierarchy
     skeleton->update(projectionMatrix);
 
-    std::function<float(std::shared_ptr<Bone>)> func = std::bind(&FittingMethod::skeletonDistanceFunction, this, std::placeholders::_1);
-
-    // TODO: update skeleton energy
+    // compute skeleton energy
+    float energy = evaluateJointEnergy(skeleton->getRootJoint(), pointCloud, projectionMatrix);
+    return energy;
 }
 
-float FittingMethod::skeletonDistanceFunction(std::shared_ptr<Bone> bone)
+float FittingMethod::evaluateJointEnergy(std::shared_ptr<Joint> joint, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix)
 {
-    // TODO: get energy for the bone
-
-    /*cv::Point3f point(0, 0, 0);
+    cv::Point3f point(0, 0, 0);
     float dist = 0;
+    nearestPoint(joint->getPosition3d(), pointCloud, projectionMatrix, point, dist);
 
-    float distAvg = 0;
-    int num = 0;
+    float energy = dist;
 
-    if (nearestPoint(bone->getJointStart(), 0, 0, point, dist)) {
-        distAvg += dist;
-        num++;
+    const std::vector<std::shared_ptr<Bone>>& bones = joint->getBones();
+    for (size_t i = 0; i < bones.size(); i++) {
+        energy += evaluateBoneEnergy(bones[i], pointCloud, projectionMatrix);
     }
+    return energy;
+}
 
-    if (nearestPoint(bone->getJointEnd(), 0, 0, point, dist)) {
-        distAvg += dist;
-        num++;
-    }
-
-    distAvg /= (float)num;
-    return distAvg;*/
-    return 0;
+float FittingMethod::evaluateBoneEnergy(std::shared_ptr<Bone> bone, const cv::Mat &pointCloud, const cv::Mat &projectionMatrix)
+{
+    return evaluateJointEnergy(bone->getJointEnd(), pointCloud, projectionMatrix);
 }
 
 bool FittingMethod::nearestPoint(const cv::Point3f& point, const cv::Mat& pointCloud, const cv::Mat& projectionMatrix, cv::Point3f& nearest, float& distSqr)
@@ -91,6 +91,9 @@ bool FittingMethod::nearestPointUnderneath(const cv::Point3f& point, const cv::M
     distSqr = (point.x - nearest.x) * (point.x - nearest.x) +
             (point.y - nearest.y) * (point.y - nearest.y) +
             (point.z - nearest.z) * (point.z - nearest.z);
+
+    /*if (distSqr > m_searchRadiusSqr)
+        distSqr = 0;*/
     return true;
 }
 
@@ -171,6 +174,9 @@ bool FittingMethod::nearestPointFlann(const cv::Point3f& point, cv::Point3f& nea
     nearest.y = data[1];
     nearest.z = data[2];
     distSqr = nearestDists[0];
+
+    /*if (distSqr > m_searchRadiusSqr)
+        distSqr = 0;*/
     return true;
 }
 }

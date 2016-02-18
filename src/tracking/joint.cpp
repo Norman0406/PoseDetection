@@ -80,14 +80,6 @@ const Joint* Joint::getJoint(JointType type) const
     return 0;
 }
 
-float Joint::getEnergy() const
-{
-    float energy = 0;
-    for (size_t i = 0; i < m_bones.size(); i++)
-        energy += m_bones[i]->getForwardEnergy();
-    return energy;
-}
-
 void Joint::update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix)
 {
     for (size_t i = 0; i < m_bones.size(); i++)

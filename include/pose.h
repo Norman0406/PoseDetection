@@ -45,9 +45,13 @@ typedef enum
 
 typedef enum
 {
-    IMAGE_DEPTH,
+    IMAGE_DEPTH = 0,
     IMAGE_POINTS,
-    IMAGE_USERSEGMENTATION
+    IMAGE_USERSEGMENTATION,
+    IMAGE_BACKGROUND,
+    IMAGE_FOREGROUND,
+    IMAGE_REGIONS,
+    IMAGE_NUMTYPES
 } PoseImageType;
 
 typedef enum
@@ -103,7 +107,7 @@ POSEAPI PoseResult poseGetScene(PoseContext* context, PoseScene** scene);
 
 POSEAPI PoseResult poseFreeScene(PoseScene* scene);
 
-POSEAPI PoseResult poseGetImage(PoseContext* context, PoseImageType type, int* width, int* height, int* size, void* data); // UNDONE
+POSEAPI PoseResult poseGetImage(PoseContext* context, PoseImageType type, int* width, int* height, int* size, void** data);
 
 #ifdef __cplusplus
 }

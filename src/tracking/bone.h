@@ -25,14 +25,9 @@ public:
     void setOrientation(const Eigen::Quaternion<double>& orientation);
     void setLength(float length);
 
-    float getEnergy() const;
-    float getForwardEnergy() const;
-
     void update(const Eigen::Quaterniond& globalQuat, const cv::Mat& projectionMatrix);
 
 private:
-    float m_energy;
-    float m_forwardEnergy;
     std::shared_ptr<Joint> m_jointStart;
     std::shared_ptr<Joint> m_jointEnd;
     float m_length;

@@ -91,10 +91,30 @@ POSEAPI PoseResult poseFreeScene(PoseScene* scene)
     return RESULT_SUCCESS;
 }
 
-POSEAPI PoseResult poseGetImage(PoseContext* context, PoseImageType type, int* width, int* height, int* size, void* data)
+POSEAPI PoseResult poseGetImage(PoseContext* context, PoseImageType type, int* width, int* height, int* size, void** data)
 {
     if (context == NULL)
         return RESULT_INVALIDCONTEXT;
+
+    if (width == 0 ||
+        height == 0 ||
+        size == 0 ||
+        data == 0 ||
+        *data != 0)
+        return RESULT_INVALIDPARAMETERS;
+
+    try {
+        if (!((pose::Algorithm*)(context->algorithm))->getImage(type, width, height, size, data))
+            return RESULT_FINISHED;
+    }
+    catch (const pose::Exception& exception) {
+        printf("Exception: %s", exception.what());
+        return RESULT_INTERNALERROR;
+    }
+    catch (...) {
+        printf("Unhandled Exception");
+        return RESULT_UNHANDLEDEXCEPTION;
+    }
 
     return RESULT_SUCCESS;
 }
